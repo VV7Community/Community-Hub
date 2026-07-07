@@ -2,7 +2,6 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Hash, Lock, FileText, File, Headphones, ChevronDown } from "lucide-react";
 import type { Message } from "@workspace/api-client-react";
 
@@ -40,12 +39,7 @@ export function ChatSidebar({ channels, activeChannelId, me, onItemClick }: Chat
 
   return (
     <div className="flex w-[280px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
-      {/* Brand */}
-      <div className="flex h-14 items-center border-b border-sidebar-border px-4">
-        <BrandLogo size="sm" />
-      </div>
-
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 pt-2">
         <div className="p-3 space-y-5">
           {/* INFO & COMMUNITY channels */}
           {CATEGORIES.map((cat) => {

@@ -77,15 +77,6 @@ export function Layout({ activePage, activeChannel = "main-room", children }: La
     <div className="vv-community flex h-screen w-full overflow-hidden bg-[var(--vv-bg)] text-[var(--vv-text)]">
       {/* Left Sidebar */}
       <aside className="flex w-[280px] shrink-0 flex-col border-r border-[var(--vv-border)] bg-[var(--vv-sidebar)]">
-        {/* Brand */}
-        <div className="flex h-16 items-center gap-2.5 border-b border-[var(--vv-border)] px-4">
-          <LogoMark className="h-8 w-8 shrink-0" />
-          <div className="flex flex-col leading-none">
-            <span className="font-display text-lg font-bold tracking-tight text-[var(--vv-text)]">VectorVest</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--vv-gold)]/80">België & Nederland</span>
-          </div>
-        </div>
-
         {/* Scrollable channel groups */}
         <div className="flex-1 overflow-y-auto p-3 space-y-5">
           {/* Trading Floors */}
@@ -201,6 +192,10 @@ export function Layout({ activePage, activeChannel = "main-room", children }: La
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top Navigation */}
         <header className="flex h-14 shrink-0 items-center border-b border-[var(--vv-border)] bg-[var(--vv-sidebar)] px-4 shadow-sm">
+          <div className="flex items-center gap-2.5 mr-4 leading-none">
+            <LogoMark className="h-8 w-8 shrink-0" />
+            <span className="font-display text-lg font-bold tracking-tight text-[var(--vv-text)]">VectorVest</span>
+          </div>
           <nav className="flex h-full items-center gap-1">
             {NAV_ITEMS.map((item) => (
               <button
