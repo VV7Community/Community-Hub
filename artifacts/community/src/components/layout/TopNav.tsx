@@ -24,7 +24,7 @@ export function TopNav() {
         <img
           src={`${basePath}/vv-logo.png`}
           alt="VectorVest"
-          className="h-7 w-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity"
+          className="h-7 w-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity brightness-0 invert"
         />
         <span className="text-[10px] font-semibold tracking-widest text-primary/70 uppercase mt-0.5 hidden lg:block">
           Community Europe

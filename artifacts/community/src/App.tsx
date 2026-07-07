@@ -140,7 +140,7 @@ function LandingPage() {
         <img
           src={`${basePath}/vv-logo.png`}
           alt="VectorVest"
-          className="h-8 w-auto object-contain opacity-90"
+          className="h-8 w-auto object-contain opacity-90 brightness-0 invert"
         />
         <Link
           href="/sign-in"
