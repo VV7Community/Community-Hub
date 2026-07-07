@@ -9,6 +9,7 @@ import {
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
 import router from "./routes";
+import healthRouter from "./routes/health";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
@@ -65,6 +66,9 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Health check mounted before Clerk middleware so it never requires auth keys
+app.use("/api", healthRouter);
 
 const devAuthBypassEnabled =
   process.env.NODE_ENV !== "production" && process.env.DEV_AUTH_BYPASS === "true";
