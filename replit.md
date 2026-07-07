@@ -1,6 +1,6 @@
-# [Project name]
+# VectorVest Community
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A full-stack community platform with an Express API server and a React/Vite frontend.
 
 ## Run & Operate
 
@@ -9,7 +9,9 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string (auto-provided by Replit)
+- Required secrets: `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` — from https://dashboard.clerk.com
+- Required secrets: `SESSION_SECRET` — random secret for sessions
 
 ## Stack
 
