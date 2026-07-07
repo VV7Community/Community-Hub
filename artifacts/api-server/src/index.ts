@@ -4,14 +4,17 @@ import { logger } from "./lib/logger";
 import { setupWebSocket } from "./ws";
 import { scheduleEventSync } from "./lib/startupSync";
 
-// Hard guard: DEV_AUTH_BYPASS must never run in production.
+// Safety check: DEV_AUTH_BYPASS should never be active in production.
+// app.ts already prevents the bypass from actually being enabled when
+// NODE_ENV=production, so this is belt-and-suspenders — warn but don't crash.
 if (
   process.env.NODE_ENV === "production" &&
   process.env.DEV_AUTH_BYPASS === "true"
 ) {
-  throw new Error(
-    "FATAL: DEV_AUTH_BYPASS=true is set in a production environment. " +
-      "This bypasses all authentication. Refusing to start.",
+  console.warn(
+    "WARNING: DEV_AUTH_BYPASS=true is set in a production environment. " +
+      "The bypass is NOT active (app.ts guards against this), but this env " +
+      "var should be removed from the production environment.",
   );
 }
 

@@ -10,7 +10,7 @@ name = "API Server"
 paths = ["/api", "/ws"]
 
 [services.development]
-run = "pnpm --filter @workspace/api-server run dev"
+run = "DEV_AUTH_BYPASS=true pnpm --filter @workspace/api-server run dev"
 
 [services.production]
 
