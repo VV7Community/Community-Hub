@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
+
+/* VectorVest Community page tokens — dark navy + gold */
+:root {
+  --vv-bg: #0f1340;
+  --vv-bg-deep: #0a0e2e;
+  --vv-sidebar: #0d1138;
+  --vv-card: #151a4a;
+  --vv-card-hover: #1a2060;
+  --vv-border: #1e2565;
+  --vv-gold: #c8a05a;
+  --vv-gold-light: #d4b06e;
+  --vv-text: #f0f4f8;
+  --vv-text-muted: #94a3b8;
+  --vv-text-dim: #64748b;
+  --vv-online: #22c55e;
+  --vv-radius: 0.5rem;
+}
+
+.vv-community * {
+  font-family: 'Inter', sans-serif;
+}
+
+.vv-community .font-display {
+  font-family: 'Playfair Display', serif;
+}
