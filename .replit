@@ -62,5 +62,7 @@ channel = "stable-25_05"
 [userenv]
 
 [userenv.shared]
+CLERK_PUBLISHABLE_KEY = "pk_test_Y2xlYXItZ2FyZmlzaC05Ni5jbGVyay5hY2NvdW50cy5kZXYk"
+VITE_CLERK_PUBLISHABLE_KEY = "pk_test_Y2xlYXItZ2FyZmlzaC05Ni5jbGVyay5hY2NvdW50cy5kZXYk"
 
 [userenv.development]
