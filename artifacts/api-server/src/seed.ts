@@ -296,6 +296,28 @@ async function seed() {
     console.log("✓ #aandelen-bespreken seeded");
   }
 
+  // ── #unisearch-strategien — sample UniSearch setup ───────────────────────────────
+  const unisearchMessages = await db
+    .select()
+    .from(messagesTable)
+    .where(eq(messagesTable.channelId, "unisearch-strategien"));
+
+  if (unisearchMessages.length === 0) {
+    await db.insert(messagesTable).values([
+      {
+        channelId: "unisearch-strategien",
+        userId: "sample_user_4",
+        username: "ScreenerFan",
+        avatarUrl: null,
+        authorRole: "member",
+        content:
+          "Hier is een goed werkende UniSearch-filter voor bullish swing setups: RV > 1, RS > 1, VST > 1. Iemand die hem wil verfijnen met ProTrader-condities? 🔷",
+        isPinned: false,
+      },
+    ]);
+    console.log("✓ #unisearch-strategien seeded");
+  }
+
   console.log("✅ Database seeding complete");
 }
 

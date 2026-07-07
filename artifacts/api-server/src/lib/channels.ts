@@ -44,7 +44,7 @@ export const CHANNELS = [
   },
   {
     id: "vv7-daily",
-    name: "vv7-daily",
+    name: "VV7 - Daily",
     description: "Dagelijkse marktpost: ColorGuard, MTI en Primary Wave. Reageren kan, nieuwe topics niet.",
     category: "COMMUNITY" as ChannelCategory,
     postPermission: "admin" as PostPermission,
@@ -59,9 +59,9 @@ export const CHANNELS = [
     icon: "📈",
   },
   {
-    id: "unisearch-recepten",
-    name: "unisearch-recepten",
-    description: "Deel werkende UniSearch-opzetjes en -filters",
+    id: "unisearch-strategien",
+    name: "unisearch-strategien",
+    description: "Deel werkende UniSearch-opzetjes en -filters. ProTrader-filters krijgen een 🔷 tag.",
     category: "COMMUNITY" as ChannelCategory,
     postPermission: "all" as PostPermission,
     icon: "🔍",

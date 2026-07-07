@@ -77,21 +77,12 @@ export function Layout({ activePage, activeChannel = "main-room", children }: La
     <div className="vv-community flex h-screen w-full overflow-hidden bg-[var(--vv-bg)] text-[var(--vv-text)]">
       {/* Left Sidebar */}
       <aside className="flex w-[280px] shrink-0 flex-col border-r border-[var(--vv-border)] bg-[var(--vv-sidebar)]">
-        {/* Brand + membership badge */}
-        <div className="flex flex-col gap-3 border-b border-[var(--vv-border)] p-4">
-          <div className="flex items-center gap-2.5">
-            <LogoMark className="h-8 w-8 shrink-0" />
-            <div className="flex flex-col leading-none">
-              <span className="font-display text-lg font-bold tracking-tight text-[var(--vv-text)]">VectorVest</span>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--vv-gold)]/80">België & Nederland</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 rounded-md border border-[var(--vv-border)] bg-[var(--vv-bg)]/50 px-3 py-2">
-            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-[var(--vv-gold)] to-amber-700" />
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-[var(--vv-text)]">VV Europe Member</span>
-              <span className="text-[10px] uppercase tracking-wider text-[var(--vv-gold)]">Premium Access</span>
-            </div>
+        {/* Brand */}
+        <div className="flex h-16 items-center gap-2.5 border-b border-[var(--vv-border)] px-4">
+          <LogoMark className="h-8 w-8 shrink-0" />
+          <div className="flex flex-col leading-none">
+            <span className="font-display text-lg font-bold tracking-tight text-[var(--vv-text)]">VectorVest</span>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--vv-gold)]/80">België & Nederland</span>
           </div>
         </div>
 
