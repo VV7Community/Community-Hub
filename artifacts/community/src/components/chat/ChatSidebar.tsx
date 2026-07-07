@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Hash, Lock, FileText, File, Headphones, ChevronDown } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import type { Message } from "@workspace/api-client-react";
 
 type ChannelCategory = "INFO" | "COMMUNITY";
@@ -23,18 +25,19 @@ interface ChatSidebarProps {
   onItemClick?: () => void;
 }
 
-const CATEGORIES: { id: ChannelCategory; label: string }[] = [
-  { id: "INFO", label: "Info" },
-  { id: "COMMUNITY", label: "Community" },
-];
-
-const RESOURCES = [
-  { id: "slides", label: "Slides", icon: FileText, href: "/resources/slides" },
-  { id: "files", label: "Files", icon: File, href: "/resources/files" },
-];
-
 export function ChatSidebar({ channels, activeChannelId, me, onItemClick }: ChatSidebarProps) {
   const [location] = useLocation();
+  const { t } = useI18n();
+
+  const CATEGORIES: { id: ChannelCategory; label: string }[] = [
+    { id: "INFO", label: t("sidebar.info") },
+    { id: "COMMUNITY", label: t("sidebar.community") },
+  ];
+
+  const RESOURCES = [
+    { id: "slides", label: t("sidebar.slides"), icon: FileText, href: "/resources/slides" },
+    { id: "files", label: t("sidebar.files"), icon: File, href: "/resources/files" },
+  ];
   const isSupportActive = activeChannelId === "support";
 
   return (
@@ -76,7 +79,7 @@ export function ChatSidebar({ channels, activeChannelId, me, onItemClick }: Chat
                         {c.unreadCount ? (
                           <span
                             className="ml-auto h-2 w-2 shrink-0 rounded-full bg-destructive"
-                            aria-label="Unread messages"
+                            aria-label={t("sidebar.unreadMessages")}
                           />
                         ) : null}
                       </Link>
@@ -91,7 +94,7 @@ export function ChatSidebar({ channels, activeChannelId, me, onItemClick }: Chat
           <section>
             <h3 className="mb-2 flex items-center gap-1 px-2 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50">
               <ChevronDown className="h-3 w-3" />
-              Resources
+              {t("sidebar.resources")}
             </h3>
             <div className="space-y-0.5">
               {RESOURCES.map((r) => (
@@ -117,7 +120,7 @@ export function ChatSidebar({ channels, activeChannelId, me, onItemClick }: Chat
           <section>
             <h3 className="mb-2 flex items-center gap-1 px-2 text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50">
               <ChevronDown className="h-3 w-3" />
-              Direct Messages
+              {t("sidebar.directMessages")}
             </h3>
             <div className="space-y-0.5">
               <Link
@@ -135,10 +138,10 @@ export function ChatSidebar({ channels, activeChannelId, me, onItemClick }: Chat
                     <Headphones className="h-3 w-3" />
                   </div>
                   <span className="absolute -bottom-0.5 -right-0.5 rounded-full border border-sidebar bg-primary px-1 text-[8px] font-bold text-primary-foreground">
-                    staff
+                    {t("sidebar.staff")}
                   </span>
                 </div>
-                <span className="truncate">Support Team</span>
+                <span className="truncate">{t("sidebar.supportTeam")}</span>
               </Link>
             </div>
           </section>
@@ -148,6 +151,9 @@ export function ChatSidebar({ channels, activeChannelId, me, onItemClick }: Chat
       {/* User footer */}
       {me && (
         <div className="flex items-center gap-3 border-t border-sidebar-border bg-sidebar/80 p-3">
+          <div className="hidden sm:block">
+            <LanguageSwitcher variant="compact" />
+          </div>
           <div className="relative">
             <Avatar className="h-8 w-8 border border-border">
               {me.avatarUrl && <AvatarImage src={me.avatarUrl} />}

@@ -28,7 +28,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Message item ─────────────────────────────────────────────────
 function MessageItem({ message, channelId, isAdmin }: { message: Message; channelId: string; isAdmin: boolean }) {
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const addReaction = useAddReaction();
   const removeReaction = useRemoveReaction();
   const queryClient = useQueryClient();
@@ -66,7 +66,7 @@ function MessageItem({ message, channelId, isAdmin }: { message: Message; channe
           <span className="font-semibold text-[15px]">{message.username}</span>
           {showTeamBadge && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-primary/20 text-primary">
-              VectorVest Team
+              {t("chat.teamBadge")}
             </span>
           )}
           <span className="text-xs text-muted-foreground">{format(new Date(message.createdAt), "dd/MM HH:mm")}</span>
@@ -112,7 +112,7 @@ function MessageItem({ message, channelId, isAdmin }: { message: Message; channe
         {isAdmin && (
           <button
             onClick={() => pinMessage.mutate({ messageId: message.id, data: { pinned: !message.isPinned } })}
-            title={message.isPinned ? "Losmaken" : "Vastmaken"}
+            title={message.isPinned ? t("chat.unpin") : t("chat.pin")}
             className="p-1.5 hover:bg-muted last:rounded-r-md text-muted-foreground hover:text-foreground border-l border-border"
           >
             {message.isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
@@ -201,8 +201,8 @@ export default function MainRoom() {
               className="md:hidden fixed top-14 bottom-14 left-0 w-[280px] max-w-[85vw] bg-sidebar border-r border-sidebar-border z-50 flex flex-col shadow-2xl"
             >
               <div className="h-12 flex items-center justify-between px-4 border-b border-sidebar-border shrink-0">
-                <span className="font-bold text-sm">Menu</span>
-                <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-md hover:bg-sidebar-accent">
+                <span className="font-bold text-sm">{t("nav.menu")}</span>
+                <button onClick={() => setDrawerOpen(false)} aria-label={t("nav.closeMenu")} className="p-1.5 rounded-md hover:bg-sidebar-accent">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -223,7 +223,7 @@ export default function MainRoom() {
           <button
             className="md:hidden p-2 rounded-md hover:bg-muted transition-colors touch-manipulation shrink-0"
             onClick={() => setDrawerOpen(true)}
-            aria-label="Open menu"
+            aria-label={t("nav.openMenu")}
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -271,7 +271,7 @@ export default function MainRoom() {
               <div className="bg-muted/30 border-b border-border p-2.5 sm:p-3 flex items-start gap-2 sm:gap-3 shrink-0">
                 <Pin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <span className="font-medium text-xs text-primary">Pinned · {pinnedMsg.username}</span>
+                  <span className="font-medium text-xs text-primary">{t("chat.pinnedBy", { username: pinnedMsg.username })}</span>
                   <p className="text-sm text-muted-foreground truncate">{pinnedMsg.content}</p>
                 </div>
               </div>
@@ -287,8 +287,8 @@ export default function MainRoom() {
               {messages?.length === 0 && (
                 <div className="h-full flex items-center justify-center flex-col text-muted-foreground text-center px-4">
                   <Hash className="w-12 h-12 mb-4 opacity-20" />
-                  <p className="font-medium">Welcome to #{currentChannel?.name}</p>
-                  <p className="text-sm">This is the start of the channel.</p>
+                  <p className="font-medium">{t("chat.welcomeTo", { name: currentChannel?.name || "" })}</p>
+                  <p className="text-sm">{t("chat.startOfChannel")}</p>
                 </div>
               )}
             </div>
@@ -307,7 +307,7 @@ export default function MainRoom() {
                     type="text"
                     value={inputValue}
                     onChange={e => setInputValue(e.target.value)}
-                    placeholder={`Message #${currentChannel?.name || ""}`}
+                    placeholder={t("chat.messagePlaceholder", { name: currentChannel?.name || "" })}
                     className="flex-1 bg-transparent border-0 py-3 px-1 text-sm focus:outline-none focus:ring-0 placeholder:text-muted-foreground min-w-0"
                   />
                   <button
@@ -323,10 +323,10 @@ export default function MainRoom() {
                   <Lock className="w-4 h-4 shrink-0" />
                   <span>
                     {currentChannel?.category === "INFO"
-                      ? "This is an official channel — only the VectorVest team can post here."
+                      ? t("chat.officialChannel")
                       : currentChannel?.id === "vv7-daily"
-                      ? "Only the VectorVest team posts the daily update here — react with emoji to join the conversation."
-                      : "Only the VectorVest team posts here — react with emoji to join the conversation."}
+                      ? t("chat.dailyUpdateReactOnly")
+                      : t("chat.reactOnly")}
                   </span>
                 </div>
               )}
@@ -339,7 +339,7 @@ export default function MainRoom() {
       {!isSupportView && (
         <div className="hidden lg:flex w-56 bg-sidebar border-l border-sidebar-border flex-col shrink-0">
           <div className="h-14 border-b border-border flex items-center px-4 shrink-0">
-            <h3 className="font-bold text-sm">Online — {onlineData?.count || 0}</h3>
+            <h3 className="font-bold text-sm">{t("chat.online")} — {onlineData?.count || 0}</h3>
           </div>
           <ScrollArea className="flex-1 p-3">
             <div className="space-y-1">

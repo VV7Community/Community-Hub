@@ -4,16 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export default function UniversityPage() {
   const { data: courses } = useListCourses({ query: { queryKey: getListCoursesQueryKey() }});
+  const { t } = useI18n();
   const [filter, setFilter] = useState<string>("all");
 
   const levels = [
-    { id: "all", label: "All Levels" },
-    { id: "beginner", label: "Beginner" },
-    { id: "intermediate", label: "Intermediate" },
-    { id: "advanced", label: "Advanced" }
+    { id: "all", label: t("university.allLevels") },
+    { id: "beginner", label: t("university.beginner") },
+    { id: "intermediate", label: t("university.intermediate") },
+    { id: "advanced", label: t("university.advanced") }
   ];
 
   const filteredCourses = courses?.filter(c => filter === "all" || c.level === filter) || [];
@@ -27,13 +29,13 @@ export default function UniversityPage() {
           <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
           
           <div className="flex-1 space-y-4 relative z-10">
-            <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">VectorVest University</Badge>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Master the Art of Investing</h1>
+            <Badge variant="outline" className="text-primary border-primary/30 bg-primary/10">{t("university.title")}</Badge>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight">{t("university.subtitle")}</h1>
             <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
-              Access our comprehensive library of trading strategies, market analysis techniques, and platform tutorials to elevate your investing game.
+              {t("university.description")}
             </p>
             <div className="pt-2">
-              <Button size="lg" className="font-bold">Resume Learning <ChevronRight className="w-4 h-4 ml-2" /></Button>
+              <Button size="lg" className="font-bold">{t("university.resumeLearning")} <ChevronRight className="w-4 h-4 ml-2" /></Button>
             </div>
           </div>
           
@@ -41,12 +43,12 @@ export default function UniversityPage() {
             <div className="bg-background border border-border rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2">
               <BookOpen className="w-8 h-8 text-primary" />
               <div className="text-2xl font-bold">24+</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">Courses</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">{t("university.courses")}</div>
             </div>
             <div className="bg-background border border-border rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2">
               <Clock className="w-8 h-8 text-primary" />
               <div className="text-2xl font-bold">120h</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-wider">Content</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-wider">{t("university.content")}</div>
             </div>
           </div>
         </div>
@@ -84,7 +86,7 @@ export default function UniversityPage() {
                 
                 <div className="absolute top-3 left-3">
                   <Badge variant={course.level === 'beginner' ? 'default' : course.level === 'intermediate' ? 'secondary' : 'destructive'} className="capitalize shadow-md">
-                    {course.level}
+                    {t(`university.${course.level}` as const)}
                   </Badge>
                 </div>
                 

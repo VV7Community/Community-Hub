@@ -11,6 +11,7 @@ import { shadcn } from '@clerk/themes';
 import { useEffect, useRef } from 'react';
 import { useGetMe, getGetMeQueryKey } from '@workspace/api-client-react';
 import { Loader2 } from 'lucide-react';
+import { useI18n } from '@/lib/i18n';
 
 // Import Pages
 import { Shell } from '@/components/layout/Shell';
@@ -106,6 +107,7 @@ function SignUpPage() {
 
 // ── Landing Page ───────────────────────────────────────────────────
 function LandingPage() {
+  const { t } = useI18n();
   return (
     <div className="relative min-h-[100dvh] w-full bg-background flex flex-col overflow-hidden">
 
@@ -141,7 +143,7 @@ function LandingPage() {
           href="/sign-in"
           className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
         >
-          Inloggen →
+          {t("landing.loginArrow")}
         </Link>
       </header>
 
@@ -159,18 +161,17 @@ function LandingPage() {
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-semibold tracking-wider uppercase mb-6">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          Live Community · België & Nederland
+          {t("landing.tagline")}
         </div>
 
         {/* Heading */}
         <h1 className="font-display text-5xl md:text-6xl font-bold text-foreground mb-4 leading-tight text-balance">
-          VectorVest<br />
-          <span className="text-primary">Community</span>
+          {t("landing.heading")}<br />
+          <span className="text-primary">{t("landing.headingAccent")}</span>
         </h1>
 
         <p className="text-lg md:text-xl text-foreground/60 mb-10 max-w-xl leading-relaxed text-balance">
-          De besloten community voor serieuze beleggers. Realtime discussie,
-          webinars en dagelijkse VectorVest-analyses — allemaal op één plek.
+          {t("landing.description")}
         </p>
 
         {/* CTAs */}
@@ -179,30 +180,30 @@ function LandingPage() {
             href="/sign-up"
             className="inline-flex h-12 items-center justify-center rounded-lg bg-gradient-to-b from-[hsl(38_58%_62%)] to-[hsl(38_52%_52%)] px-10 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background min-w-[170px]"
           >
-            Word lid
+            {t("landing.signUp")}
           </Link>
           <Link
             href="/sign-in"
             className="inline-flex h-12 items-center justify-center rounded-lg border border-white/15 bg-white/5 px-10 text-sm font-bold text-foreground shadow-sm transition-all hover:bg-white/10 hover:border-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-w-[170px]"
           >
-            Inloggen
+            {t("landing.signIn")}
           </Link>
         </div>
 
         {/* Trust bar */}
         <div className="mt-16 flex items-center gap-6 sm:gap-8 text-foreground/30 text-xs font-medium tracking-wide">
-          <span>37 JAAR ERVARING</span>
+          <span>{t("landing.experience")}</span>
           <span className="w-1 h-1 rounded-full bg-foreground/20" />
-          <span>1M+ BELEGGERS</span>
+          <span>{t("landing.investors")}</span>
           <span className="w-1 h-1 rounded-full bg-foreground/20" />
-          <span>BE · NL</span>
+          <span>{t("landing.region")}</span>
         </div>
       </main>
 
       {/* Footer */}
       <footer className="relative z-10 flex justify-center pb-6">
         <p className="text-foreground/25 text-xs">
-          © {new Date().getFullYear()} VectorVest Community België &amp; Nederland.
+          {t("landing.copyright", { year: new Date().getFullYear() })}
         </p>
       </footer>
     </div>
@@ -294,8 +295,8 @@ function ClerkProviderWithRoutes() {
         signInUrl: `${basePath}/sign-in`,
         signUpUrl: `${basePath}/sign-up`,
         localization: {
-          signIn: { start: { title: "Welcome back", subtitle: "Sign in to access the community" } },
-          signUp: { start: { title: "Join VectorVest", subtitle: "Become part of the community" } },
+          signIn: { start: { title: "Welkom terug", subtitle: "Log in om toegang te krijgen tot de community" } },
+          signUp: { start: { title: "Word lid van VectorVest", subtitle: "Word onderdeel van de community" } },
         },
         routerPush: (to: string) => setLocation(stripBase(to)),
         routerReplace: (to: string) => setLocation(stripBase(to), { replace: true }),

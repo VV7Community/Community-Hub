@@ -39,7 +39,9 @@ _Describe the high-level user-facing capabilities of this app once they exist._
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Default UI language: Dutch (`nl`).
+- Available UI language: French (`fr`) via the language switcher in the top nav and chat sidebar.
+- i18n strings and language switcher live in `artifacts/community/src/lib/i18n.tsx` and `artifacts/community/src/components/LanguageSwitcher.tsx`.
 
 ## Gotchas
 
@@ -48,3 +50,4 @@ _Populate as you build — sharp edges, "always run X before Y" rules._
 ## Pointers
 
 - See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- i18n source-of-truth: `artifacts/community/src/lib/i18n.tsx`

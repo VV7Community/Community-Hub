@@ -25,16 +25,18 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { CheckCircle2, XCircle, Trash2, Plus, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
+import { useI18n } from "@/lib/i18n";
 
-function statusBadge(status: string) {
-  if (status === "verified") return <Badge className="bg-primary/20 text-primary hover:bg-primary/20">Verified</Badge>;
-  if (status === "rejected") return <Badge variant="destructive">Rejected</Badge>;
-  return <Badge variant="outline">Pending</Badge>;
+function statusBadge(status: string, t: (key: string) => string) {
+  if (status === "verified") return <Badge className="bg-primary/20 text-primary hover:bg-primary/20">{t("admin.verified")}</Badge>;
+  if (status === "rejected") return <Badge variant="destructive">{t("admin.rejected")}</Badge>;
+  return <Badge variant="outline">{t("admin.pending")}</Badge>;
 }
 
 function PendingMembersTable() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const { data: members, isLoading } = useListMembers(
     { status: "pending" },
     { query: { queryKey: getListMembersQueryKey({ status: "pending" }) } },
@@ -46,9 +48,9 @@ function PendingMembersTable() {
     mutation: {
       onSuccess: () => {
         invalidate();
-        toast({ title: "Member verified", description: "They now have full access to the community." });
+        toast({ title: t("admin.memberVerified"), description: t("admin.memberVerifiedDescription") });
       },
-      onError: () => toast({ title: "Error", description: "Could not verify member.", variant: "destructive" }),
+      onError: () => toast({ title: t("common.error"), description: t("admin.verifyError"), variant: "destructive" }),
     },
   });
 
@@ -56,19 +58,19 @@ function PendingMembersTable() {
     mutation: {
       onSuccess: () => {
         invalidate();
-        toast({ title: "Member rejected" });
+        toast({ title: t("admin.memberRejected") });
       },
-      onError: () => toast({ title: "Error", description: "Could not reject member.", variant: "destructive" }),
+      onError: () => toast({ title: t("common.error"), description: t("admin.rejectError"), variant: "destructive" }),
     },
   });
 
-  if (isLoading) return <p className="text-sm text-muted-foreground py-8 text-center">Loading…</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground py-8 text-center">{t("admin.loading")}</p>;
 
   if (!members || members.length === 0) {
     return (
       <div className="py-12 text-center text-muted-foreground">
         <ShieldCheck className="w-8 h-8 mx-auto mb-2 opacity-50" />
-        <p className="text-sm">No members waiting for verification.</p>
+        <p className="text-sm">{t("admin.noPending")}</p>
       </div>
     );
   }
@@ -77,10 +79,10 @@ function PendingMembersTable() {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Username</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Joined</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead>{t("admin.username")}</TableHead>
+          <TableHead>{t("admin.email")}</TableHead>
+          <TableHead>{t("admin.joined")}</TableHead>
+          <TableHead className="text-right">{t("admin.actions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -95,15 +97,15 @@ function PendingMembersTable() {
                 onClick={() => verify.mutate({ userId: m.userId })}
                 disabled={verify.isPending || reject.isPending}
               >
-                <CheckCircle2 className="w-4 h-4 mr-1.5" /> Verify
+                <CheckCircle2 className="w-4 h-4 mr-1.5" /> {t("admin.verify")}
               </Button>
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => reject.mutate({ userId: m.userId, data: { reason: "Manually rejected by admin" } })}
+                onClick={() => reject.mutate({ userId: m.userId, data: { reason: t("admin.rejectedReason") } })}
                 disabled={verify.isPending || reject.isPending}
               >
-                <XCircle className="w-4 h-4 mr-1.5" /> Reject
+                <XCircle className="w-4 h-4 mr-1.5" /> {t("admin.reject")}
               </Button>
             </TableCell>
           </TableRow>
@@ -117,18 +119,19 @@ function AllMembersTable() {
   const { data: members, isLoading } = useListMembers(undefined, {
     query: { queryKey: getListMembersQueryKey() },
   });
+  const { t } = useI18n();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground py-8 text-center">Loading…</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground py-8 text-center">{t("admin.loading")}</p>;
 
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Username</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Verified</TableHead>
+          <TableHead>{t("admin.username")}</TableHead>
+          <TableHead>{t("admin.email")}</TableHead>
+          <TableHead>{t("admin.role")}</TableHead>
+          <TableHead>{t("admin.status")}</TableHead>
+          <TableHead>{t("admin.verified")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -137,7 +140,7 @@ function AllMembersTable() {
             <TableCell className="font-medium">{m.username}</TableCell>
             <TableCell className="text-muted-foreground">{m.email ?? "—"}</TableCell>
             <TableCell className="capitalize text-muted-foreground">{m.role}</TableCell>
-            <TableCell>{statusBadge(m.membershipStatus)}</TableCell>
+            <TableCell>{statusBadge(m.membershipStatus, t)}</TableCell>
             <TableCell className="text-muted-foreground text-sm">
               {m.membershipVerifiedAt ? format(new Date(m.membershipVerifiedAt), "MMM d, yyyy") : "—"}
             </TableCell>
@@ -151,6 +154,7 @@ function AllMembersTable() {
 function AllowlistPanel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const { data: entries, isLoading } = useListAllowlist({ query: { queryKey: getListAllowlistQueryKey() } });
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
@@ -163,16 +167,16 @@ function AllowlistPanel() {
         invalidate();
         setEmail("");
         setNotes("");
-        toast({ title: "Added to allowlist", description: "New sign-ins with this email auto-verify." });
+        toast({ title: t("admin.addedToAllowlist"), description: t("admin.addedToAllowlistDescription") });
       },
-      onError: () => toast({ title: "Error", description: "Could not add email — it may already be listed.", variant: "destructive" }),
+      onError: () => toast({ title: t("common.error"), description: t("admin.allowlistError"), variant: "destructive" }),
     },
   });
 
   const remove = useRemoveAllowlistEntry({
     mutation: {
       onSuccess: () => invalidate(),
-      onError: () => toast({ title: "Error", description: "Could not remove entry.", variant: "destructive" }),
+      onError: () => toast({ title: t("common.error"), description: t("admin.removeError"), variant: "destructive" }),
     },
   });
 
@@ -189,7 +193,7 @@ function AllowlistPanel() {
         <Input
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="member@example.com"
+          placeholder={t("admin.allowlistPlaceholder")}
           type="email"
           required
           className="sm:max-w-xs"
@@ -197,26 +201,26 @@ function AllowlistPanel() {
         <Input
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Notes (optional)"
+          placeholder={t("admin.allowlistNotesPlaceholder")}
           className="flex-1"
         />
         <Button type="submit" disabled={add.isPending}>
-          <Plus className="w-4 h-4 mr-1.5" /> Add
+          <Plus className="w-4 h-4 mr-1.5" /> {t("admin.add")}
         </Button>
       </form>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">Loading…</p>
+        <p className="text-sm text-muted-foreground py-8 text-center">{t("admin.loading")}</p>
       ) : !entries || entries.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-8 text-center">Allowlist is empty.</p>
+        <p className="text-sm text-muted-foreground py-8 text-center">{t("admin.allowlistEmpty")}</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead>Added</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("admin.email")}</TableHead>
+              <TableHead>{t("admin.notes")}</TableHead>
+              <TableHead>{t("admin.added")}</TableHead>
+              <TableHead className="text-right">{t("admin.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -240,21 +244,22 @@ function AllowlistPanel() {
 }
 
 export default function AdminMembersPage() {
+  const { t } = useI18n();
   return (
     <div className="h-full w-full overflow-y-auto bg-background">
       <div className="max-w-4xl mx-auto px-4 py-6 sm:px-6 sm:py-8 space-y-6">
         <div className="space-y-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Member Verification</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("admin.title")}</h1>
           <p className="text-muted-foreground text-sm sm:text-base">
-            Review pending VectorVest members and manage the auto-verification allowlist.
+            {t("admin.subtitle")}
           </p>
         </div>
 
         <Tabs defaultValue="pending">
           <TabsList>
-            <TabsTrigger value="pending">Pending Review</TabsTrigger>
-            <TabsTrigger value="all">All Members</TabsTrigger>
-            <TabsTrigger value="allowlist">Allowlist</TabsTrigger>
+            <TabsTrigger value="pending">{t("admin.pendingReview")}</TabsTrigger>
+            <TabsTrigger value="all">{t("admin.allMembers")}</TabsTrigger>
+            <TabsTrigger value="allowlist">{t("admin.allowlist")}</TabsTrigger>
           </TabsList>
           <TabsContent value="pending" className="bg-card border border-border rounded-xl p-4 sm:p-6 mt-4">
             <PendingMembersTable />

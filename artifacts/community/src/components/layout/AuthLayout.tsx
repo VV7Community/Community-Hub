@@ -1,11 +1,6 @@
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { ShieldCheck, TrendingUp, Users } from "lucide-react";
-
-const HIGHLIGHTS = [
-  { icon: TrendingUp, title: "Dagelijkse marktsignalen", body: "ColorGuard, MTI en Primary Wave — elke handelsdag." },
-  { icon: Users, title: "Actieve community", body: "Deel aandelen, UniSearch-recepten en stel je vragen." },
-  { icon: ShieldCheck, title: "Exclusief voor klanten", body: "Enkel geverifieerde VectorVest-abonnees krijgen toegang." },
-];
+import { useI18n } from "@/lib/i18n";
 
 /**
  * Split-screen auth shell: an editorial navy brand panel (desktop) beside the
@@ -13,6 +8,13 @@ const HIGHLIGHTS = [
  * a lone card floating on an empty background.
  */
 export function AuthLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useI18n();
+
+  const HIGHLIGHTS = [
+    { icon: TrendingUp, title: t("auth.highlightSignals"), body: t("auth.highlightSignalsBody") },
+    { icon: Users, title: t("auth.highlightCommunity"), body: t("auth.highlightCommunityBody") },
+    { icon: ShieldCheck, title: t("auth.highlightExclusive"), body: t("auth.highlightExclusiveBody") },
+  ];
   return (
     <div className="min-h-[100dvh] w-full lg:grid lg:grid-cols-[1.05fr_1fr] bg-background">
       {/* ── Brand panel — desktop only ─────────────────────────────── */}
@@ -37,17 +39,15 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         />
 
         <div className="relative z-10">
-          <BrandLogo size="lg" tagline="Community · België & Nederland" />
+          <BrandLogo size="lg" tagline={t("auth.tagline")} />
         </div>
 
         <div className="relative z-10 max-w-md">
           <h1 className="font-display text-4xl xl:text-5xl font-bold leading-[1.1] tracking-tight text-white">
-            De thuisbasis voor{" "}
-            <span className="text-primary">serieuze beleggers</span>.
+            {t("auth.heading", { accent: t("auth.headingAccent") })}
           </h1>
           <p className="mt-5 text-base leading-relaxed text-white/60">
-            Realtime discussie, wekelijkse webinars en dagelijkse VectorVest-analyses —
-            alles op één plek, exclusief voor de BE/NL community.
+            {t("auth.subtitle")}
           </p>
 
           <ul className="mt-10 space-y-5">
@@ -66,9 +66,9 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="relative z-10 flex items-center gap-6 text-xs font-medium tracking-wide text-white/30">
-          <span>37 JAAR ERVARING</span>
+          <span>{t("auth.experience")}</span>
           <span className="h-1 w-1 rounded-full bg-white/20" />
-          <span>1M+ BELEGGERS WERELDWIJD</span>
+          <span>{t("auth.investors")}</span>
         </div>
       </aside>
 
@@ -81,7 +81,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
 
         {/* Mobile brand lockup (brand panel hidden below lg) */}
         <div className="relative z-10 mb-8 flex flex-col items-center lg:hidden">
-          <BrandLogo size="md" tagline="Community · BE & NL" />
+          <BrandLogo size="md" tagline={t("auth.mobileTagline")} />
         </div>
 
         <div className="relative z-10 w-full max-w-[420px]">{children}</div>

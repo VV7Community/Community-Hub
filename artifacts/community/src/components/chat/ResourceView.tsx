@@ -1,39 +1,42 @@
 import { useParams } from "wouter";
 import { FileText, File, FolderOpen, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
-
-const RESOURCES: Record<string, { title: string; icon: React.ElementType; items: { name: string; description: string }[] }> = {
-  slides: {
-    title: "Slides",
-    icon: FileText,
-    items: [
-      { name: "VectorVest 7 Introductie", description: "Basisprincipes van VectorVest in 20 slides." },
-      { name: "ColorGuard & MTI", description: "Hoe de markttiming-indicators werken." },
-      { name: "UniSearch Workshop", description: "Slides van de laatste UniSearch-sessie." },
-    ],
-  },
-  files: {
-    title: "Files",
-    icon: File,
-    items: [
-      { name: "RV/RS/VST Cheat Sheet", description: "Snelle referentiegids voor VectorVest-scores." },
-      { name: "Watchlist Template", description: "CSV-template om je eigen watchlist te importeren." },
-      { name: "Strategy Checklist", description: "PDF met een checklist voor elke strategie." },
-    ],
-  },
-};
+import { useI18n } from "@/lib/i18n";
 
 export function ResourceView() {
   const params = useParams();
   const resourceId = params.resourceId || "";
+  const { t, language } = useI18n();
+
+  const RESOURCES: Record<string, { title: string; icon: React.ElementType; items: { name: string; description: string }[] }> = {
+    slides: {
+      title: t("resources.slides"),
+      icon: FileText,
+      items: [
+        { name: language === "fr" ? "Introduction à VectorVest 7" : language === "nl" ? "Introductie tot VectorVest 7" : "VectorVest 7 Introductie", description: t("resources.slideIntro") },
+        { name: language === "fr" ? "ColorGuard & MTI" : "ColorGuard & MTI", description: t("resources.slideColorGuard") },
+        { name: language === "fr" ? "Workshop UniSearch" : language === "nl" ? "UniSearch Workshop" : "UniSearch Workshop", description: t("resources.slideUniSearch") },
+      ],
+    },
+    files: {
+      title: t("resources.files"),
+      icon: File,
+      items: [
+        { name: language === "fr" ? "Aide-mémoire RV/RS/VST" : language === "nl" ? "RV/RS/VST overzicht" : "RV/RS/VST Cheat Sheet", description: t("resources.fileCheatSheet") },
+        { name: language === "fr" ? "Modèle de watchlist" : language === "nl" ? "Watchlist-sjabloon" : "Watchlist Template", description: t("resources.fileWatchlist") },
+        { name: language === "fr" ? "Checklist stratégique" : language === "nl" ? "Strategie-checklist" : "Strategy Checklist", description: t("resources.fileChecklist") },
+      ],
+    },
+  };
+
   const resource = RESOURCES[resourceId];
 
   if (!resource) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-6">
-        <p className="text-muted-foreground">Resource not found.</p>
+        <p className="text-muted-foreground">{t("resources.notFound")}</p>
         <Link href="/room/chat" className="mt-4 text-primary hover:underline">
-          <ArrowLeft className="mr-1 inline h-4 w-4" /> Back to chat
+          <ArrowLeft className="mr-1 inline h-4 w-4" /> {t("resources.backToChat")}
         </Link>
       </div>
     );
@@ -49,14 +52,14 @@ export function ResourceView() {
         </div>
         <div>
           <h2 className="text-lg font-bold text-foreground">{resource.title}</h2>
-          <p className="text-xs text-muted-foreground">Resources van de VectorVest-community.</p>
+          <p className="text-xs text-muted-foreground">{t("resources.subtitle")}</p>
         </div>
       </div>
 
       {resource.items.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border p-8 text-center">
           <FolderOpen className="mb-2 h-8 w-8 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">No resources uploaded yet.</p>
+          <p className="text-sm text-muted-foreground">{t("resources.noResources")}</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -71,7 +74,7 @@ export function ResourceView() {
               <h3 className="mb-1 font-semibold text-foreground">{item.name}</h3>
               <p className="text-xs text-muted-foreground">{item.description}</p>
               <button className="mt-4 w-full rounded-md bg-primary py-1.5 text-xs font-semibold text-primary-foreground">
-                Open
+                {t("resources.open")}
               </button>
             </div>
           ))}

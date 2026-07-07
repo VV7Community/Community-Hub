@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, User, Save, Loader2, Languages } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useI18n } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function AccountPage() {
   const { data: me, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
@@ -44,10 +45,10 @@ export default function AccountPage() {
       {
         onSuccess: (newData) => {
           queryClient.setQueryData(getGetMeQueryKey(), newData);
-          toast({ title: "Profile updated", description: "Your preferences have been saved." });
+          toast({ title: t("account.profileUpdated"), description: t("account.preferencesSaved") });
         },
         onError: () => {
-          toast({ title: "Error", description: "Failed to update profile.", variant: "destructive" });
+          toast({ title: t("account.updateError"), description: t("account.updateFailed"), variant: "destructive" });
         },
       }
     );
@@ -104,10 +105,10 @@ export default function AccountPage() {
               <Input
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                placeholder="Enter a display name"
+                placeholder={t("account.displayNamePlaceholder")}
                 className="bg-background h-11"
               />
-              <p className="text-xs text-muted-foreground">This is how you appear to others in the community rooms.</p>
+              <p className="text-xs text-muted-foreground">{t("account.displayNameHint")}</p>
             </div>
 
             <div className="space-y-2">
@@ -115,22 +116,7 @@ export default function AccountPage() {
                 <Languages className="w-4 h-4 text-muted-foreground" />
                 {t("account.language")}
               </label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedLanguage("nl")}
-                  className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${selectedLanguage === "nl" ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:bg-accent"}`}
-                >
-                  Nederlands
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedLanguage("fr")}
-                  className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${selectedLanguage === "fr" ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:bg-accent"}`}
-                >
-                  Français
-                </button>
-              </div>
+              <LanguageSwitcher />
             </div>
 
             <Button
@@ -150,7 +136,7 @@ export default function AccountPage() {
         <div className="bg-card border border-border rounded-xl p-4 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="font-bold text-base sm:text-lg text-foreground">{t("account.signOut")}</h3>
-            <p className="text-sm text-muted-foreground">Log out of your VectorVest account on this device.</p>
+            <p className="text-sm text-muted-foreground">{t("account.signOutDescription")}</p>
           </div>
           <Button
             variant="destructive"

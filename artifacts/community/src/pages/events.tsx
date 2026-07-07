@@ -2,9 +2,11 @@ import { useListEvents, getListEventsQueryKey } from "@workspace/api-client-reac
 import { format } from "date-fns";
 import { MapPin, CalendarDays, Clock, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useI18n } from "@/lib/i18n";
 
 export default function EventsPage() {
   const { data: events } = useListEvents({ query: { queryKey: getListEventsQueryKey() }});
+  const { t } = useI18n();
 
   // Group events by month; events without a date are treated as on-demand
   const groupedEvents = events?.reduce((acc, event) => {
@@ -22,8 +24,8 @@ export default function EventsPage() {
       <div className="max-w-4xl mx-auto space-y-10">
         
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Upcoming Events</h1>
-          <p className="text-muted-foreground">Join local meetups, major conferences, and special broadcasts.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("events.title")}</h1>
+          <p className="text-muted-foreground">{t("events.subtitle")}</p>
         </div>
 
         <div className="space-y-12">
@@ -44,7 +46,7 @@ export default function EventsPage() {
                     {/* Content Block */}
                     <div className="p-6 flex-1 flex flex-col justify-center relative">
                       <div className="flex justify-between items-start mb-2">
-                        <Badge variant="outline" className="bg-background">{event.type || "Event"}</Badge>
+                        <Badge variant="outline" className="bg-background">{event.type || t("events.event")}</Badge>
                       </div>
                       
                       <h3 className="text-xl font-bold mb-2">{event.title}</h3>
@@ -71,17 +73,17 @@ export default function EventsPage() {
 
           {onDemandEvents.length > 0 && (
             <div className="space-y-6">
-              <h2 className="text-xl font-bold border-b border-border pb-2 text-primary">On demand</h2>
+              <h2 className="text-xl font-bold border-b border-border pb-2 text-primary">{t("events.onDemand")}</h2>
               <div className="space-y-4">
                 {onDemandEvents.map(event => (
                   <div key={event.id} className="group bg-card border border-border rounded-xl p-0 flex flex-col sm:flex-row overflow-hidden hover:border-primary/50 transition-colors">
                     <div className="bg-sidebar border-b sm:border-b-0 sm:border-r border-border p-6 flex flex-col items-center justify-center min-w-[120px] shrink-0">
-                      <span className="text-sm font-bold text-primary uppercase tracking-widest">Any</span>
+                      <span className="text-sm font-bold text-primary uppercase tracking-widest">{t("events.any")}</span>
                       <span className="text-4xl font-black font-mono mt-1">—</span>
                     </div>
                     <div className="p-6 flex-1 flex flex-col justify-center relative">
                       <div className="flex justify-between items-start mb-2">
-                        <Badge variant="outline" className="bg-background">{event.type || "Event"}</Badge>
+                        <Badge variant="outline" className="bg-background">{event.type || t("events.event")}</Badge>
                       </div>
                       <h3 className="text-xl font-bold mb-2">{event.title}</h3>
                       <p className="text-muted-foreground text-sm mb-4 max-w-2xl">{event.description}</p>
@@ -100,8 +102,8 @@ export default function EventsPage() {
           {(!events || events.length === 0) && (
             <div className="py-20 text-center border border-dashed border-border rounded-xl">
               <CalendarDays className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-              <h3 className="text-lg font-bold mb-1">No upcoming events</h3>
-              <p className="text-muted-foreground">Check back later for new meetups and conferences.</p>
+              <h3 className="text-lg font-bold mb-1">{t("events.noEvents")}</h3>
+              <p className="text-muted-foreground">{t("events.checkBackLater")}</p>
             </div>
           )}
         </div>

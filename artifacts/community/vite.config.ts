@@ -82,6 +82,18 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    // In the artifact platform, path routing handles /api → API server.
+    // When running via configureWorkflow (no platform routing), proxy locally.
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://localhost:8080',
+        ws: true,
+      },
+    },
   },
   preview: {
     port,

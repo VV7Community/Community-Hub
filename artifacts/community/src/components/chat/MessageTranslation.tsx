@@ -7,7 +7,7 @@ interface MessageTranslationProps {
 }
 
 export function MessageTranslation({ text }: MessageTranslationProps) {
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const [translated, setTranslated] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -47,10 +47,10 @@ export function MessageTranslation({ text }: MessageTranslationProps) {
           className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
         >
           <Languages className="h-3 w-3" />
-          {loading ? "…" : language === "nl" ? "Vertalen naar Nederlands" : "Traduire en français"}
+          {loading ? "…" : language === "nl" ? t("chat.translateToNL") : t("chat.translateToFR")}
         </button>
       )}
-      {error && <p className="mt-1 text-xs text-destructive">Translation failed.</p>}
+      {error && <p className="mt-1 text-xs text-destructive">{t("chat.translationFailed")}</p>}
     </div>
   );
 }

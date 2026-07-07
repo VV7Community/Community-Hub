@@ -4,20 +4,23 @@ import { MessageSquare, Video, BookOpen, Calendar, UserCircle, Headphones, Shiel
 import { useClerk } from "@/lib/clerk";
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
-
-const navItems = [
-  { label: "Main Room",  path: "/room/chat", icon: MessageSquare, activeMatches: ["/room"] },
-  { label: "Webinar",    path: "/webinar",         icon: Video,         activeMatches: ["/webinar"] },
-  { label: "University", path: "/university",      icon: BookOpen,      activeMatches: ["/university"] },
-  { label: "Events",     path: "/events",          icon: Calendar,      activeMatches: ["/events"] },
-  { label: "Support",    path: "/support",         icon: Headphones,    activeMatches: ["/support"] },
-  { label: "Account",    path: "/account",         icon: UserCircle,    activeMatches: ["/account"] },
-];
+import { useI18n } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export function TopNav() {
   const [location] = useLocation();
   const { user } = useClerk();
   const { data: me } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
+  const { t } = useI18n();
+
+  const navItems = [
+    { label: t("nav.mainRoom"), path: "/room/chat", icon: MessageSquare, activeMatches: ["/room"] },
+    { label: t("nav.webinar"), path: "/webinar", icon: Video, activeMatches: ["/webinar"] },
+    { label: t("nav.university"), path: "/university", icon: BookOpen, activeMatches: ["/university"] },
+    { label: t("nav.events"), path: "/events", icon: Calendar, activeMatches: ["/events"] },
+    { label: t("nav.support"), path: "/support", icon: Headphones, activeMatches: ["/support"] },
+    { label: t("nav.account"), path: "/account", icon: UserCircle, activeMatches: ["/account"] },
+  ];
 
   return (
     <nav className="h-14 border-b border-sidebar-border bg-sidebar px-4 flex items-center shrink-0 shadow-lg z-20 relative">
@@ -25,7 +28,7 @@ export function TopNav() {
       <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
         <BrandLogo size="sm" />
         <span className="text-[10px] font-semibold tracking-widest text-primary/70 uppercase mt-0.5 hidden lg:block border-l border-sidebar-border pl-2.5 ml-0.5">
-          België &amp; Nederland
+          {t("nav.brandRegion")}
         </span>
       </Link>
 
@@ -63,7 +66,7 @@ export function TopNav() {
           {me?.role === "admin" && (
             <Link
               href="/admin/members"
-              title="Member verification"
+              title={t("nav.memberVerification")}
               className={cn(
                 "hidden sm:flex items-center justify-center w-8 h-8 rounded-full transition-colors",
                 location.startsWith("/admin")
@@ -77,10 +80,13 @@ export function TopNav() {
           <span className="text-xs font-medium text-sidebar-foreground/60 hidden md:block">
             {user.username || user.firstName}
           </span>
+          <div className="block">
+            <LanguageSwitcher variant="compact" />
+          </div>
           {user.imageUrl ? (
             <img
               src={user.imageUrl}
-              alt="Avatar"
+              alt={t("common.avatar")}
               className="w-8 h-8 rounded-full border-2 border-primary/30 shadow"
             />
           ) : (
