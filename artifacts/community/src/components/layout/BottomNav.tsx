@@ -1,13 +1,14 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Video, BookOpen, Calendar, UserCircle } from "lucide-react";
+import { MessageSquare, Video, BookOpen, Calendar, UserCircle, HeadphonesIcon } from "lucide-react";
 
 const navItems = [
-  { label: "Room",       path: "/room/main-chat", icon: MessageSquare, match: "/room" },
-  { label: "Webinar",    path: "/webinar",         icon: Video,         match: "/webinar" },
-  { label: "University", path: "/university",      icon: BookOpen,      match: "/university" },
-  { label: "Events",     path: "/events",          icon: Calendar,      match: "/events" },
-  { label: "Account",    path: "/account",         icon: UserCircle,    match: "/account" },
+  { label: "Room",       path: "/room/main-chat", icon: MessageSquare,  match: "/room" },
+  { label: "Webinar",    path: "/webinar",         icon: Video,          match: "/webinar" },
+  { label: "University", path: "/university",      icon: BookOpen,       match: "/university" },
+  { label: "Events",     path: "/events",          icon: Calendar,       match: "/events" },
+  { label: "Support",    path: "/support",         icon: HeadphonesIcon, match: "/support" },
+  { label: "Account",    path: "/account",         icon: UserCircle,     match: "/account" },
 ];
 
 export function BottomNav() {

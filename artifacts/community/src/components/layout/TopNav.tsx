@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Video, BookOpen, Calendar, UserCircle } from "lucide-react";
+import { MessageSquare, Video, BookOpen, Calendar, UserCircle, Headphones } from "lucide-react";
 import { useClerk } from "@clerk/react";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -10,6 +10,7 @@ const navItems = [
   { label: "Webinar",    path: "/webinar",         icon: Video,         activeMatches: ["/webinar"] },
   { label: "University", path: "/university",      icon: BookOpen,      activeMatches: ["/university"] },
   { label: "Events",     path: "/events",          icon: Calendar,      activeMatches: ["/events"] },
+  { label: "Support",    path: "/support",         icon: Headphones,    activeMatches: ["/support"] },
   { label: "Account",    path: "/account",         icon: UserCircle,    activeMatches: ["/account"] },
 ];
 
@@ -43,14 +44,14 @@ export function TopNav() {
               key={item.path}
               href={item.path}
               className={cn(
-                "relative flex items-center gap-2 px-4 h-full text-sm font-medium transition-all hover:text-foreground",
+                "relative flex items-center gap-2 px-3 h-full text-sm font-medium transition-all hover:text-foreground",
                 isActive
                   ? "text-primary after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:bg-primary after:rounded-full"
                   : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80 hover:bg-white/5"
               )}
             >
-              <item.icon className="w-4 h-4" />
-              <span>{item.label}</span>
+              <item.icon className="w-4 h-4 shrink-0" />
+              <span className="hidden lg:inline">{item.label}</span>
             </Link>
           );
         })}

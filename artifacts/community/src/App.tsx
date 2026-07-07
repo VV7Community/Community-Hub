@@ -16,6 +16,7 @@ import WebinarPage from '@/pages/webinar';
 import UniversityPage from '@/pages/university';
 import EventsPage from '@/pages/events';
 import AccountPage from '@/pages/account';
+import SupportPage from '@/pages/support';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
@@ -288,6 +289,9 @@ function ClerkProviderWithRoutes() {
           </Route>
           <Route path="/events">
             <ProtectedRoute><EventsPage /></ProtectedRoute>
+          </Route>
+          <Route path="/support">
+            <ProtectedRoute><SupportPage /></ProtectedRoute>
           </Route>
           <Route path="/account">
             <ProtectedRoute><AccountPage /></ProtectedRoute>
