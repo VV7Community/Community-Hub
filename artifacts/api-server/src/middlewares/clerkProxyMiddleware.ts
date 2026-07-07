@@ -49,15 +49,10 @@ export function getClerkProxyHost(req: {
   const forwarded = req.headers['x-forwarded-host'];
   const raw = Array.isArray(forwarded) ? forwarded[0] : forwarded;
   const firstHop = raw?.split(',')[0]?.trim();
-  return firstHop || req.headers.host?.trim() || undefined;
+  return firstHop || req.headers.host?.trim() || process.env.REPLIT_DEV_DOMAIN || undefined;
 }
 
 export function clerkProxyMiddleware(): RequestHandler {
-  // Only run proxy in production — Clerk proxying doesn't work for dev instances
-  if (process.env.NODE_ENV !== 'production') {
-    return (_req, _res, next) => next();
-  }
-
   const secretKey = process.env.CLERK_SECRET_KEY;
   if (!secretKey) {
     return (_req, _res, next) => next();

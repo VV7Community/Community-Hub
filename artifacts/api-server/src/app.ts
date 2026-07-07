@@ -40,15 +40,28 @@ app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Clerk middleware — resolves publishable key from host for custom domains
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
-);
+const devAuthBypassEnabled =
+  process.env.NODE_ENV !== "production" && process.env.DEV_AUTH_BYPASS === "true";
+
+if (devAuthBypassEnabled) {
+  logger.warn(
+    "DEV_AUTH_BYPASS is enabled: all requests are treated as the hardcoded admin user 'bjarne'. This must NEVER be enabled in production.",
+  );
+  app.use((req, _res, next) => {
+    (req as any).auth = { userId: "bjarne" };
+    next();
+  });
+} else {
+  // Clerk middleware — resolves publishable key from host for custom domains
+  app.use(
+    clerkMiddleware((req) => ({
+      publishableKey: publishableKeyFromHost(
+        getClerkProxyHost(req) ?? "",
+        process.env.CLERK_PUBLISHABLE_KEY,
+      ),
+    })),
+  );
+}
 
 app.use("/api", router);
 

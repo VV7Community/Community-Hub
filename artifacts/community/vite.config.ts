@@ -27,8 +27,18 @@ if (!basePath) {
   );
 }
 
+const devAuthBypass = process.env.DEV_AUTH_BYPASS;
+
+// Only inject the dev bypass flag in non-production builds; in production the flag is
+// never defined so the frontend always uses real Clerk auth.
+const bypassDefine =
+  process.env.NODE_ENV !== 'production' && devAuthBypass !== undefined
+    ? { 'import.meta.env.VITE_DEV_AUTH_BYPASS': JSON.stringify(devAuthBypass) }
+    : undefined;
+
 export default defineConfig({
   base: basePath,
+  define: bypassDefine,
   plugins: [
     react(),
     tailwindcss(),
@@ -71,18 +81,6 @@ export default defineConfig({
     allowedHosts: true,
     fs: {
       strict: true,
-    },
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        ws: true,
-      },
-      '/ws': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        ws: true,
-      },
     },
   },
   preview: {

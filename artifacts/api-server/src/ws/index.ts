@@ -1,7 +1,5 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
-import { eq } from "drizzle-orm";
-import { db, usersTable } from "@workspace/db";
 import { logger } from "../lib/logger";
 
 interface ClientInfo {
@@ -12,6 +10,9 @@ interface ClientInfo {
 
 // Map of ws → client info
 const clients = new Map<WebSocket, ClientInfo>();
+
+const devAuthBypassEnabled =
+  process.env.NODE_ENV !== "production" && process.env.DEV_AUTH_BYPASS === "true";
 
 // Broadcast to all connected clients
 function broadcast(data: unknown): void {
@@ -76,15 +77,16 @@ export function setupWebSocket(server: Server): void {
         const msg = JSON.parse(data.toString());
 
         if (msg.type === "auth" && msg.userId && msg.username) {
-          // Only verified VectorVest members may join presence/broadcast — a
-          // pending/rejected user must not receive live chat over the socket
-          // even though their REST calls are already blocked.
-          const [user] = await db
-            .select({ membershipStatus: usersTable.membershipStatus })
-            .from(usersTable)
-            .where(eq(usersTable.userId, msg.userId));
-          if (!user || user.membershipStatus !== "verified") {
-            ws.close(4403, "Membership not verified");
+          // WebSocket auth is only enabled while the dev bypass is active. In that mode
+          // the only valid identity is the server-known hardcoded admin "bjarne". When
+          // bypass is off, real Clerk session/JWT verification must be implemented before
+          // any client-declared identity can be trusted; until then we refuse auth.
+          if (!devAuthBypassEnabled) {
+            ws.close(4401, "WebSocket authentication not configured");
+            return;
+          }
+          if (msg.userId !== "bjarne") {
+            ws.close(4403, "Unauthorized identity");
             return;
           }
 

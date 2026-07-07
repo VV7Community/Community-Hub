@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { MessageSquare, Video, BookOpen, Calendar, UserCircle, Headphones, ShieldCheck } from "lucide-react";
-import { useClerk } from "@clerk/react";
+import { useClerk } from "@/lib/clerk";
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 

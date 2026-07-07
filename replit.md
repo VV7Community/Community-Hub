@@ -4,14 +4,17 @@ A full-stack community platform with an Express API server and a React/Vite fron
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `artifacts/api-server: API Server` — managed workflow for the API server
+- `artifacts/community: web` — managed workflow for the community frontend
+- `artifacts/mockup-sandbox: Component Preview Server` — managed workflow for the mockup sandbox
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string (auto-provided by Replit)
-- Required secrets: `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` — from https://dashboard.clerk.com
+- Required secrets: `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` — from https://dashboard.clerk.com (only needed for real auth; disabled in dev via `DEV_AUTH_BYPASS`)
 - Required secrets: `SESSION_SECRET` — random secret for sessions
+- Dev env: `DEV_AUTH_BYPASS=true` — when set alongside `NODE_ENV !== production`, every request is treated as the hardcoded admin user `bjarne` (temporary until VectorVest shares their Clerk setup)
 
 ## Stack
 

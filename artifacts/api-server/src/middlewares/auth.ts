@@ -1,4 +1,3 @@
-import { getAuth } from "@clerk/express";
 import type { Request, Response, NextFunction } from "express";
 import { getOrCreateUser } from "../lib/userProvisioning";
 
@@ -6,9 +5,18 @@ export interface AuthedRequest extends Request {
   userId: string;
 }
 
+const devAuthBypassEnabled =
+  process.env.NODE_ENV !== "production" && process.env.DEV_AUTH_BYPASS === "true";
+
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
-  const auth = getAuth(req);
-  const userId = (auth?.sessionClaims as any)?.userId ?? auth?.userId;
+  if (devAuthBypassEnabled) {
+    (req as AuthedRequest).userId = "bjarne";
+    next();
+    return;
+  }
+
+  const auth = (req as any).auth;
+  const userId = auth?.userId;
   if (!userId) {
     res.status(401).json({ error: "Unauthorized" });
     return;

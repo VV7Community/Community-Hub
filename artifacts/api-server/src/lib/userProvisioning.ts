@@ -5,11 +5,17 @@ import { membershipVerifier, recordMembershipAudit, isBootstrapAdminEmail } from
 
 const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
+const devAuthBypassEnabled =
+  process.env.NODE_ENV !== "production" && process.env.DEV_AUTH_BYPASS === "true";
+
 /**
  * Loads (or JIT-provisions) the app-local user row for a Clerk user, and runs
  * membership verification the first time the row is created. Shared by every
  * route that needs the current user's profile so provisioning + verification
  * stay in one place.
+ *
+ * Dev bypass: the hardcoded user "bjarne" is always created as a verified admin
+ * without calling Clerk, so the app can run while VectorVest shares their auth setup.
  */
 export async function getOrCreateUser(userId: string): Promise<User | undefined> {
   let [user] = await db.select().from(usersTable).where(eq(usersTable.userId, userId));
@@ -38,19 +44,25 @@ export async function getOrCreateUser(userId: string): Promise<User | undefined>
   let avatarUrl: string | null = null;
   let email: string | null = null;
 
-  try {
-    const clerkUser = await clerk.users.getUser(userId);
-    username =
-      clerkUser.username ||
-      `${clerkUser.firstName ?? ""}${clerkUser.lastName ?? ""}`.trim() ||
-      username;
-    avatarUrl = clerkUser.imageUrl ?? null;
-    email = clerkUser.primaryEmailAddress?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress ?? null;
-  } catch {
-    // Clerk lookup failed — fall back to placeholder profile, membership stays pending
+  // Dev bypass: hardcoded admin user
+  if (devAuthBypassEnabled && userId === "bjarne") {
+    username = "bjarne";
+    email = "bjarne@vectorvest.local";
+  } else {
+    try {
+      const clerkUser = await clerk.users.getUser(userId);
+      username =
+        clerkUser.username ||
+        `${clerkUser.firstName ?? ""}${clerkUser.lastName ?? ""}`.trim() ||
+        username;
+      avatarUrl = clerkUser.imageUrl ?? null;
+      email = clerkUser.primaryEmailAddress?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress ?? null;
+    } catch {
+      // Clerk lookup failed — fall back to placeholder profile, membership stays pending
+    }
   }
 
-  const isBootstrapAdmin = isBootstrapAdminEmail(email);
+  const isBootstrapAdmin = isBootstrapAdminEmail(email) || (devAuthBypassEnabled && userId === "bjarne");
   const verification = isBootstrapAdmin
     ? ({ status: "verified", vectorVestMemberId: null } as const)
     : await membershipVerifier.verify({ email, userId });

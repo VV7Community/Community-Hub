@@ -1,5 +1,5 @@
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
-import { useClerk } from "@clerk/react";
+import { useClerk } from "@/lib/clerk";
 import { Button } from "@/components/ui/button";
 import { LogoMark } from "@/components/brand/BrandLogo";
 import { Loader2, Clock3, XCircle, LogOut } from "lucide-react";

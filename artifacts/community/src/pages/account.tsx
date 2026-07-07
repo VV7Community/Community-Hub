@@ -1,5 +1,5 @@
 import { useGetMe, getGetMeQueryKey, useUpdateMe } from "@workspace/api-client-react";
-import { useClerk } from "@clerk/react";
+import { useClerk } from "@/lib/clerk";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

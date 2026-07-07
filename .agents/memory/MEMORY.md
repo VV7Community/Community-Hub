@@ -1,3 +1,4 @@
 - [WS heartbeat pattern](ws-heartbeat.md) — _isAlive must be initialised true on connect AND reset true in pong handler, not just set false before ping.
 - [WS auth timing](ws-auth-timing.md) — send auth in both onopen AND a user-change effect; socket opens before async me/useGetMe resolves.
 - [React Query key shape](rq-key-shape.md) — useGetChannelMessages keys must always include the second params arg `{}` to match WS cache updates.
+- [Auth bypass gating](auth-bypass-gating.md) — gate temporary dev auth bypasses with an explicit env flag plus a non-production guard; keep unverifiable transports fail-closed.

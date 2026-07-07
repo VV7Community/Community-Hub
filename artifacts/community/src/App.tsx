@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { Route, Switch, Router as WouterRouter, Redirect, useLocation, Link } from 'wouter';
-import { ClerkProvider, SignIn, SignUp, Show, useClerk } from '@clerk/react';
+import { ClerkProvider, SignIn, SignUp, Show, useClerk, bypassEnabled } from '@/lib/clerk';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { useEffect, useRef } from 'react';
@@ -25,15 +25,19 @@ import { AuthLayout } from '@/components/layout/AuthLayout';
 import { BrandLogo, LogoMark } from '@/components/brand/BrandLogo';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
-const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+
+// Real Clerk config is only needed when the dev bypass is off.
+const clerkPubKey = bypassEnabled
+  ? undefined
+  : publishableKeyFromHost(window.location.hostname, import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+const clerkProxyUrl = bypassEnabled ? undefined : import.meta.env.VITE_CLERK_PROXY_URL;
+
+if (!bypassEnabled && !clerkPubKey) {
+  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
+}
 
 function stripBase(path: string): string {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || "/" : path;
-}
-
-if (!clerkPubKey) {
-  throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
 }
 
 // ── VectorVest navy + gold Clerk theme ────────────────────────────
@@ -279,20 +283,24 @@ function ClerkQueryClientCacheInvalidator() {
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
 
+  const clerkProps = bypassEnabled
+    ? { appearance: clerkAppearance, publishableKey: 'dev-bypass' }
+    : {
+        publishableKey: clerkPubKey!,
+        proxyUrl: clerkProxyUrl,
+        appearance: clerkAppearance,
+        signInUrl: `${basePath}/sign-in`,
+        signUpUrl: `${basePath}/sign-up`,
+        localization: {
+          signIn: { start: { title: "Welcome back", subtitle: "Sign in to access the community" } },
+          signUp: { start: { title: "Join VectorVest", subtitle: "Become part of the community" } },
+        },
+        routerPush: (to: string) => setLocation(stripBase(to)),
+        routerReplace: (to: string) => setLocation(stripBase(to), { replace: true }),
+      };
+
   return (
-    <ClerkProvider
-      publishableKey={clerkPubKey}
-      proxyUrl={clerkProxyUrl}
-      appearance={clerkAppearance}
-      signInUrl={`${basePath}/sign-in`}
-      signUpUrl={`${basePath}/sign-up`}
-      localization={{
-        signIn: { start: { title: "Welcome back", subtitle: "Sign in to access the community" } },
-        signUp: { start: { title: "Join VectorVest", subtitle: "Become part of the community" } },
-      }}
-      routerPush={(to) => setLocation(stripBase(to))}
-      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
-    >
+    <ClerkProvider {...clerkProps}>
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
         <Switch>
