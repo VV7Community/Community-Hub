@@ -2,21 +2,26 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: 1.0.0
+  description: VectorVest Community Platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: channels
+  - name: messages
+  - name: users
+  - name: webinars
+  - name: events
+  - name: university
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +29,493 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /channels:
+    get:
+      operationId: listChannels
+      tags: [channels]
+      summary: List all channels
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: List of channels
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Channel"
+        "401":
+          description: Unauthorized
+
+  /channels/{channelId}/messages:
+    get:
+      operationId: getChannelMessages
+      tags: [messages]
+      summary: Get messages for a channel
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: before
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Cursor for pagination - get messages before this message ID
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Channel not found
+
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message to a channel
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageInput"
+      responses:
+        "201":
+          description: Message created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Channel is read-only
+
+  /messages/{messageId}:
+    delete:
+      operationId: deleteMessage
+      tags: [messages]
+      summary: Delete a message
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /messages/{messageId}/reactions:
+    post:
+      operationId: addReaction
+      tags: [messages]
+      summary: Add or toggle a reaction on a message
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReactionInput"
+      responses:
+        "200":
+          description: Reaction toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "401":
+          description: Unauthorized
+
+  /messages/{messageId}/reactions/{emoji}:
+    delete:
+      operationId: removeReaction
+      tags: [messages]
+      summary: Remove a specific reaction from a message
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: emoji
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reaction removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "401":
+          description: Unauthorized
+
+  /channels/{channelId}/pinned:
+    get:
+      operationId: getPinnedMessage
+      tags: [channels]
+      summary: Get the pinned message for a channel
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pinned message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "404":
+          description: No pinned message
+
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current user profile
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+    put:
+      operationId: updateMe
+      tags: [users]
+      summary: Update current user profile
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+
+  /users/online:
+    get:
+      operationId: getOnlineUsers
+      tags: [users]
+      summary: Get online users
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: Online users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OnlineUsersResponse"
+        "401":
+          description: Unauthorized
+
+  /webinars:
+    get:
+      operationId: listWebinars
+      tags: [webinars]
+      summary: List webinars
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: Webinars
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Webinar"
+        "401":
+          description: Unauthorized
+
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List events
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+        "401":
+          description: Unauthorized
+
+  /university/courses:
+    get:
+      operationId: listCourses
+      tags: [university]
+      summary: List university courses
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: Courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Course"
+        "401":
+          description: Unauthorized
+
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: __session
+
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    Channel:
+      type: object
+      required: [id, name, description, category, writable, icon]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [WELCOME, COMMUNITY, RESOURCES]
+        writable:
+          type: boolean
+        icon:
+          type: string
+        unreadCount:
+          type: integer
+
+    Message:
+      type: object
+      required: [id, channelId, userId, username, content, createdAt, reactions, isPinned]
+      properties:
+        id:
+          type: integer
+        channelId:
+          type: string
+        userId:
+          type: string
+        username:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        reactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReactionGroup"
+        isPinned:
+          type: boolean
+
+    MessageInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 4000
+
+    ReactionGroup:
+      type: object
+      required: [emoji, count, userReacted]
+      properties:
+        emoji:
+          type: string
+        count:
+          type: integer
+        userReacted:
+          type: boolean
+
+    ReactionInput:
+      type: object
+      required: [emoji]
+      properties:
+        emoji:
+          type: string
+
+    UserProfile:
+      type: object
+      required: [userId, username, role]
+      properties:
+        userId:
+          type: string
+        username:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [admin, member]
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 2
+
+    OnlineUsersResponse:
+      type: object
+      required: [count, users]
+      properties:
+        count:
+          type: integer
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/OnlineUser"
+
+    OnlineUser:
+      type: object
+      required: [userId, username]
+      properties:
+        userId:
+          type: string
+        username:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+
+    Webinar:
+      type: object
+      required: [id, title, description, hostName, scheduledAt, status]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        hostName:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [upcoming, live, past]
+        thumbnailUrl:
+          type: ["string", "null"]
+        sessionNumber:
+          type: ["integer", "null"]
+
+    Event:
+      type: object
+      required: [id, title, description, date]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+          format: date-time
+        location:
+          type: ["string", "null"]
+        type:
+          type: string
+
+    Course:
+      type: object
+      required: [id, title, description, instructor, level]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        instructor:
+          type: string
+        duration:
+          type: ["string", "null"]
+        level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        videoUrl:
+          type: ["string", "null"]
+        thumbnailUrl:
+          type: ["string", "null"]
+        isLocked:
+          type: boolean
