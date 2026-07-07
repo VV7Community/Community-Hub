@@ -36,7 +36,33 @@ app.use(
 // Clerk proxy must be before body parsers
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
-app.use(cors({ credentials: true, origin: true }));
+// CORS: restrict to an explicit allowlist; never reflect arbitrary origins with credentials.
+// Set CORS_ORIGIN (comma-separated) in production. Falls back to localhost dev origins.
+const rawCorsOrigins = process.env.CORS_ORIGIN;
+const allowedOrigins: string[] = rawCorsOrigins
+  ? rawCorsOrigins.split(",").map((o) => o.trim())
+  : [];
+
+app.use(
+  cors({
+    credentials: true,
+    origin(origin, callback) {
+      // Allow server-to-server (no Origin header)
+      if (!origin) return callback(null, true);
+      // In dev with no explicit allowlist, permit any localhost/replit origin
+      if (allowedOrigins.length === 0) {
+        const isLocalDev =
+          /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
+          origin.endsWith(".replit.dev") ||
+          origin.endsWith(".repl.co");
+        if (isLocalDev) return callback(null, true);
+        return callback(new Error(`CORS: origin '${origin}' not allowed`));
+      }
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS: origin '${origin}' not in allowlist`));
+    },
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

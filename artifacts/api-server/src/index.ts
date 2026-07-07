@@ -3,6 +3,17 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { setupWebSocket } from "./ws";
 
+// Hard guard: DEV_AUTH_BYPASS must never run in production.
+if (
+  process.env.NODE_ENV === "production" &&
+  process.env.DEV_AUTH_BYPASS === "true"
+) {
+  throw new Error(
+    "FATAL: DEV_AUTH_BYPASS=true is set in a production environment. " +
+      "This bypasses all authentication. Refusing to start.",
+  );
+}
+
 const rawPort = process.env["PORT"];
 
 if (!rawPort) {
