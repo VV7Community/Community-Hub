@@ -20,17 +20,23 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AllowlistEntry,
+  AllowlistEntryInput,
   Channel,
   Course,
   Event,
   GetChannelMessagesParams,
   HealthStatus,
+  ListMembersParams,
+  MemberSummary,
   Message,
   MessageInput,
   OnlineUsersResponse,
   ReactionInput,
+  RejectMemberInput,
   UserProfile,
   UserProfileUpdate,
+  VerifyMemberInput,
   Webinar
 } from './api.schemas';
 
@@ -1119,4 +1125,447 @@ export function useListCourses<TData = Awaited<ReturnType<typeof listCourses>>, 
 
 
 
+
+export const getListMembersUrl = (params?: ListMembersParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/members?${stringifiedParams}` : `/api/admin/members`
+}
+
+/**
+ * @summary List members, optionally filtered by membership status
+ */
+export const listMembers = async (params?: ListMembersParams, options?: RequestInit): Promise<MemberSummary[]> => {
+
+  return customFetch<MemberSummary[]>(getListMembersUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMembersQueryKey = (params?: ListMembersParams,) => {
+    return [
+    `/api/admin/members`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListMembersQueryOptions = <TData = Awaited<ReturnType<typeof listMembers>>, TError = ErrorType<void>>(params?: ListMembersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMembers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMembersQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMembers>>> = ({ signal }) => listMembers(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMembers>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMembersQueryResult = NonNullable<Awaited<ReturnType<typeof listMembers>>>
+export type ListMembersQueryError = ErrorType<void>
+
+
+/**
+ * @summary List members, optionally filtered by membership status
+ */
+
+export function useListMembers<TData = Awaited<ReturnType<typeof listMembers>>, TError = ErrorType<void>>(
+ params?: ListMembersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMembers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMembersQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getVerifyMemberUrl = (userId: string,) => {
+
+
+
+
+  return `/api/admin/members/${userId}/verify`
+}
+
+/**
+ * @summary Manually mark a member as verified VectorVest customer
+ */
+export const verifyMember = async (userId: string,
+    verifyMemberInput?: VerifyMemberInput, options?: RequestInit): Promise<MemberSummary> => {
+
+  return customFetch<MemberSummary>(getVerifyMemberUrl(userId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(verifyMemberInput)
+  }
+);}
+
+
+
+
+export const getVerifyMemberMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyMember>>, TError,{userId: string;data?: BodyType<VerifyMemberInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyMember>>, TError,{userId: string;data?: BodyType<VerifyMemberInput>}, TContext> => {
+
+const mutationKey = ['verifyMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyMember>>, {userId: string;data?: BodyType<VerifyMemberInput>}> = (props) => {
+          const {userId,data} = props ?? {};
+
+          return  verifyMember(userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyMemberMutationResult = NonNullable<Awaited<ReturnType<typeof verifyMember>>>
+    export type VerifyMemberMutationBody = BodyType<VerifyMemberInput> | undefined
+    export type VerifyMemberMutationError = ErrorType<void>
+
+    /**
+ * @summary Manually mark a member as verified VectorVest customer
+ */
+export const useVerifyMember = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyMember>>, TError,{userId: string;data?: BodyType<VerifyMemberInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyMember>>,
+        TError,
+        {userId: string;data?: BodyType<VerifyMemberInput>},
+        TContext
+      > => {
+      return useMutation(getVerifyMemberMutationOptions(options));
+    }
+
+export const getRejectMemberUrl = (userId: string,) => {
+
+
+
+
+  return `/api/admin/members/${userId}/reject`
+}
+
+/**
+ * @summary Manually reject a member's VectorVest membership claim
+ */
+export const rejectMember = async (userId: string,
+    rejectMemberInput?: RejectMemberInput, options?: RequestInit): Promise<MemberSummary> => {
+
+  return customFetch<MemberSummary>(getRejectMemberUrl(userId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(rejectMemberInput)
+  }
+);}
+
+
+
+
+export const getRejectMemberMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectMember>>, TError,{userId: string;data?: BodyType<RejectMemberInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rejectMember>>, TError,{userId: string;data?: BodyType<RejectMemberInput>}, TContext> => {
+
+const mutationKey = ['rejectMember'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rejectMember>>, {userId: string;data?: BodyType<RejectMemberInput>}> = (props) => {
+          const {userId,data} = props ?? {};
+
+          return  rejectMember(userId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RejectMemberMutationResult = NonNullable<Awaited<ReturnType<typeof rejectMember>>>
+    export type RejectMemberMutationBody = BodyType<RejectMemberInput> | undefined
+    export type RejectMemberMutationError = ErrorType<void>
+
+    /**
+ * @summary Manually reject a member's VectorVest membership claim
+ */
+export const useRejectMember = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectMember>>, TError,{userId: string;data?: BodyType<RejectMemberInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof rejectMember>>,
+        TError,
+        {userId: string;data?: BodyType<RejectMemberInput>},
+        TContext
+      > => {
+      return useMutation(getRejectMemberMutationOptions(options));
+    }
+
+export const getListAllowlistUrl = () => {
+
+
+
+
+  return `/api/admin/allowlist`
+}
+
+/**
+ * @summary List the VectorVest member email allowlist
+ */
+export const listAllowlist = async ( options?: RequestInit): Promise<AllowlistEntry[]> => {
+
+  return customFetch<AllowlistEntry[]>(getListAllowlistUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAllowlistQueryKey = () => {
+    return [
+    `/api/admin/allowlist`
+    ] as const;
+    }
+
+
+export const getListAllowlistQueryOptions = <TData = Awaited<ReturnType<typeof listAllowlist>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAllowlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAllowlistQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllowlist>>> = ({ signal }) => listAllowlist({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAllowlist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAllowlistQueryResult = NonNullable<Awaited<ReturnType<typeof listAllowlist>>>
+export type ListAllowlistQueryError = ErrorType<void>
+
+
+/**
+ * @summary List the VectorVest member email allowlist
+ */
+
+export function useListAllowlist<TData = Awaited<ReturnType<typeof listAllowlist>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAllowlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAllowlistQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAddAllowlistEntryUrl = () => {
+
+
+
+
+  return `/api/admin/allowlist`
+}
+
+/**
+ * @summary Add an email to the VectorVest member allowlist
+ */
+export const addAllowlistEntry = async (allowlistEntryInput: AllowlistEntryInput, options?: RequestInit): Promise<AllowlistEntry> => {
+
+  return customFetch<AllowlistEntry>(getAddAllowlistEntryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(allowlistEntryInput)
+  }
+);}
+
+
+
+
+export const getAddAllowlistEntryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAllowlistEntry>>, TError,{data: BodyType<AllowlistEntryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addAllowlistEntry>>, TError,{data: BodyType<AllowlistEntryInput>}, TContext> => {
+
+const mutationKey = ['addAllowlistEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addAllowlistEntry>>, {data: BodyType<AllowlistEntryInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  addAllowlistEntry(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddAllowlistEntryMutationResult = NonNullable<Awaited<ReturnType<typeof addAllowlistEntry>>>
+    export type AddAllowlistEntryMutationBody = BodyType<AllowlistEntryInput>
+    export type AddAllowlistEntryMutationError = ErrorType<void>
+
+    /**
+ * @summary Add an email to the VectorVest member allowlist
+ */
+export const useAddAllowlistEntry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAllowlistEntry>>, TError,{data: BodyType<AllowlistEntryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addAllowlistEntry>>,
+        TError,
+        {data: BodyType<AllowlistEntryInput>},
+        TContext
+      > => {
+      return useMutation(getAddAllowlistEntryMutationOptions(options));
+    }
+
+export const getRemoveAllowlistEntryUrl = (id: number,) => {
+
+
+
+
+  return `/api/admin/allowlist/${id}`
+}
+
+/**
+ * @summary Remove an email from the VectorVest member allowlist
+ */
+export const removeAllowlistEntry = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRemoveAllowlistEntryUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getRemoveAllowlistEntryMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeAllowlistEntry>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeAllowlistEntry>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['removeAllowlistEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeAllowlistEntry>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  removeAllowlistEntry(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveAllowlistEntryMutationResult = NonNullable<Awaited<ReturnType<typeof removeAllowlistEntry>>>
+
+    export type RemoveAllowlistEntryMutationError = ErrorType<void>
+
+    /**
+ * @summary Remove an email from the VectorVest member allowlist
+ */
+export const useRemoveAllowlistEntry = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeAllowlistEntry>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeAllowlistEntry>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getRemoveAllowlistEntryMutationOptions(options));
+    }
 

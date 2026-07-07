@@ -1,11 +1,11 @@
 import { Router, type IRouter } from "express";
 import { db, coursesTable } from "@workspace/db";
-import { requireAuth } from "../middlewares/auth";
+import { requireAuth, requireVerifiedMember } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
 // GET /university/courses
-router.get("/university/courses", requireAuth, async (_req, res): Promise<void> => {
+router.get("/university/courses", requireAuth, requireVerifiedMember, async (_req, res): Promise<void> => {
   const courses = await db.select().from(coursesTable);
   res.json(
     courses.map((c) => ({

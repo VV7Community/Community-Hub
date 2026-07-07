@@ -189,7 +189,8 @@ export const GetMeResponse = zod.object({
   "userId": zod.string(),
   "username": zod.string(),
   "avatarUrl": zod.string().nullish(),
-  "role": zod.enum(['admin', 'member'])
+  "role": zod.enum(['admin', 'member']),
+  "membershipStatus": zod.enum(['pending', 'verified', 'rejected'])
 })
 
 
@@ -208,7 +209,8 @@ export const UpdateMeResponse = zod.object({
   "userId": zod.string(),
   "username": zod.string(),
   "avatarUrl": zod.string().nullish(),
-  "role": zod.enum(['admin', 'member'])
+  "role": zod.enum(['admin', 'member']),
+  "membershipStatus": zod.enum(['pending', 'verified', 'rejected'])
 })
 
 
@@ -270,5 +272,117 @@ export const ListCoursesResponseItem = zod.object({
   "isLocked": zod.boolean().optional()
 })
 export const ListCoursesResponse = zod.array(ListCoursesResponseItem)
+
+
+/**
+ * @summary List members, optionally filtered by membership status
+ */
+export const ListMembersQueryParams = zod.object({
+  "status": zod.enum(['pending', 'verified', 'rejected']).optional()
+})
+
+export const ListMembersResponseItem = zod.object({
+  "userId": zod.string(),
+  "username": zod.string(),
+  "email": zod.string().nullable(),
+  "avatarUrl": zod.string().nullish(),
+  "role": zod.enum(['admin', 'member']),
+  "membershipStatus": zod.enum(['pending', 'verified', 'rejected']),
+  "membershipMethod": zod.string().nullable(),
+  "membershipVerifiedAt": zod.coerce.date().nullable(),
+  "createdAt": zod.coerce.date()
+})
+export const ListMembersResponse = zod.array(ListMembersResponseItem)
+
+
+/**
+ * @summary Manually mark a member as verified VectorVest customer
+ */
+export const VerifyMemberParams = zod.object({
+  "userId": zod.coerce.string()
+})
+
+export const VerifyMemberBody = zod.object({
+  "vectorVestMemberId": zod.string().optional()
+})
+
+export const VerifyMemberResponse = zod.object({
+  "userId": zod.string(),
+  "username": zod.string(),
+  "email": zod.string().nullable(),
+  "avatarUrl": zod.string().nullish(),
+  "role": zod.enum(['admin', 'member']),
+  "membershipStatus": zod.enum(['pending', 'verified', 'rejected']),
+  "membershipMethod": zod.string().nullable(),
+  "membershipVerifiedAt": zod.coerce.date().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Manually reject a member's VectorVest membership claim
+ */
+export const RejectMemberParams = zod.object({
+  "userId": zod.coerce.string()
+})
+
+export const RejectMemberBody = zod.object({
+  "reason": zod.string().optional()
+})
+
+export const RejectMemberResponse = zod.object({
+  "userId": zod.string(),
+  "username": zod.string(),
+  "email": zod.string().nullable(),
+  "avatarUrl": zod.string().nullish(),
+  "role": zod.enum(['admin', 'member']),
+  "membershipStatus": zod.enum(['pending', 'verified', 'rejected']),
+  "membershipMethod": zod.string().nullable(),
+  "membershipVerifiedAt": zod.coerce.date().nullable(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List the VectorVest member email allowlist
+ */
+export const ListAllowlistResponseItem = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "vectorVestMemberId": zod.string().nullable(),
+  "addedBy": zod.string(),
+  "addedAt": zod.coerce.date(),
+  "notes": zod.string().nullable()
+})
+export const ListAllowlistResponse = zod.array(ListAllowlistResponseItem)
+
+
+/**
+ * @summary Add an email to the VectorVest member allowlist
+ */
+export const AddAllowlistEntryBody = zod.object({
+  "email": zod.string().email(),
+  "vectorVestMemberId": zod.string().optional(),
+  "notes": zod.string().optional()
+})
+
+export const AddAllowlistEntryResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "vectorVestMemberId": zod.string().nullable(),
+  "addedBy": zod.string(),
+  "addedAt": zod.coerce.date(),
+  "notes": zod.string().nullable()
+})
+
+
+/**
+ * @summary Remove an email from the VectorVest member allowlist
+ */
+export const RemoveAllowlistEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RemoveAllowlistEntryResponse = zod.void()
 
 

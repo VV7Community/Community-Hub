@@ -1,12 +1,12 @@
 import { Router, type IRouter } from "express";
 import { asc } from "drizzle-orm";
 import { db, eventsTable } from "@workspace/db";
-import { requireAuth } from "../middlewares/auth";
+import { requireAuth, requireVerifiedMember } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
 // GET /events
-router.get("/events", requireAuth, async (_req, res): Promise<void> => {
+router.get("/events", requireAuth, requireVerifiedMember, async (_req, res): Promise<void> => {
   const events = await db.select().from(eventsTable).orderBy(asc(eventsTable.date));
   res.json(
     events.map((e) => ({

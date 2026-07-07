@@ -8,6 +8,8 @@ import { ClerkProvider, SignIn, SignUp, Show, useClerk } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { useEffect, useRef } from 'react';
+import { useGetMe, getGetMeQueryKey } from '@workspace/api-client-react';
+import { Loader2 } from 'lucide-react';
 
 // Import Pages
 import { Shell } from '@/components/layout/Shell';
@@ -17,6 +19,8 @@ import UniversityPage from '@/pages/university';
 import EventsPage from '@/pages/events';
 import AccountPage from '@/pages/account';
 import SupportPage from '@/pages/support';
+import MembershipPendingPage from '@/pages/membership-pending';
+import AdminMembersPage from '@/pages/admin/members';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
@@ -227,13 +231,49 @@ function HomeRedirect() {
   );
 }
 
+function MembershipGate({ children }: { children: React.ReactNode }) {
+  const { data: me, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
+
+  if (isLoading) {
+    return (
+      <div className="h-[100dvh] w-full flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!me || me.membershipStatus !== "verified") {
+    return <MembershipPendingPage />;
+  }
+
+  return <Shell>{children}</Shell>;
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <Show when="signed-in"><Shell>{children}</Shell></Show>
+      <Show when="signed-in"><MembershipGate>{children}</MembershipGate></Show>
       <Show when="signed-out"><Redirect to="/sign-in" /></Show>
     </>
   );
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { data: me, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
+
+  if (isLoading) {
+    return (
+      <div className="h-[100dvh] w-full flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!me || me.membershipStatus !== "verified" || me.role !== "admin") {
+    return <Redirect to="/room/main-chat" />;
+  }
+
+  return <Shell>{children}</Shell>;
 }
 
 function ClerkQueryClientCacheInvalidator() {
@@ -295,6 +335,9 @@ function ClerkProviderWithRoutes() {
           </Route>
           <Route path="/account">
             <ProtectedRoute><AccountPage /></ProtectedRoute>
+          </Route>
+          <Route path="/admin/members">
+            <AdminRoute><AdminMembersPage /></AdminRoute>
           </Route>
 
           <Route component={NotFound} />

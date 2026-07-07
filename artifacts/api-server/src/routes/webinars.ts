@@ -1,12 +1,12 @@
 import { Router, type IRouter } from "express";
 import { desc } from "drizzle-orm";
 import { db, webinarsTable } from "@workspace/db";
-import { requireAuth } from "../middlewares/auth";
+import { requireAuth, requireVerifiedMember } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
 // GET /webinars
-router.get("/webinars", requireAuth, async (_req, res): Promise<void> => {
+router.get("/webinars", requireAuth, requireVerifiedMember, async (_req, res): Promise<void> => {
   const webinars = await db
     .select()
     .from(webinarsTable)

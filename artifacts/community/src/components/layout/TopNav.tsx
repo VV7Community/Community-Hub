@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Video, BookOpen, Calendar, UserCircle, Headphones } from "lucide-react";
+import { MessageSquare, Video, BookOpen, Calendar, UserCircle, Headphones, ShieldCheck } from "lucide-react";
 import { useClerk } from "@clerk/react";
+import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -17,6 +18,7 @@ const navItems = [
 export function TopNav() {
   const [location] = useLocation();
   const { user } = useClerk();
+  const { data: me } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
 
   return (
     <nav className="h-14 border-b border-sidebar-border bg-sidebar px-4 flex items-center shrink-0 shadow-lg z-20 relative">
@@ -63,6 +65,20 @@ export function TopNav() {
       {/* User avatar — always visible */}
       {user && (
         <div className="flex items-center gap-2 shrink-0">
+          {me?.role === "admin" && (
+            <Link
+              href="/admin/members"
+              title="Member verification"
+              className={cn(
+                "hidden sm:flex items-center justify-center w-8 h-8 rounded-full transition-colors",
+                location.startsWith("/admin")
+                  ? "text-primary bg-primary/10"
+                  : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80 hover:bg-white/5"
+              )}
+            >
+              <ShieldCheck className="w-4 h-4" />
+            </Link>
+          )}
           <span className="text-xs font-medium text-sidebar-foreground/60 hidden md:block">
             {user.username || user.firstName}
           </span>

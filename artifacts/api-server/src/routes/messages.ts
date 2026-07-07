@@ -7,14 +7,14 @@ import {
   AddReactionBody,
   RemoveReactionParams,
 } from "@workspace/api-zod";
-import { requireAuth, type AuthedRequest } from "../middlewares/auth";
+import { requireAuth, requireVerifiedMember, type AuthedRequest } from "../middlewares/auth";
 import { fetchSingleMessageWithReactions } from "../lib/messageHelper";
 import { broadcastReactionUpdate, broadcastMessageDelete } from "../ws";
 
 const router: IRouter = Router();
 
 // DELETE /messages/:messageId
-router.delete("/messages/:messageId", requireAuth, async (req, res): Promise<void> => {
+router.delete("/messages/:messageId", requireAuth, requireVerifiedMember, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.messageId) ? req.params.messageId[0] : req.params.messageId;
   const params = DeleteMessageParams.safeParse({ messageId: parseInt(raw, 10) });
   if (!params.success) {
@@ -47,7 +47,7 @@ router.delete("/messages/:messageId", requireAuth, async (req, res): Promise<voi
 });
 
 // POST /messages/:messageId/reactions — toggle a reaction
-router.post("/messages/:messageId/reactions", requireAuth, async (req, res): Promise<void> => {
+router.post("/messages/:messageId/reactions", requireAuth, requireVerifiedMember, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.messageId) ? req.params.messageId[0] : req.params.messageId;
   const params = AddReactionParams.safeParse({ messageId: parseInt(raw, 10) });
   if (!params.success) {
@@ -106,7 +106,7 @@ router.post("/messages/:messageId/reactions", requireAuth, async (req, res): Pro
 });
 
 // DELETE /messages/:messageId/reactions/:emoji
-router.delete("/messages/:messageId/reactions/:emoji", requireAuth, async (req, res): Promise<void> => {
+router.delete("/messages/:messageId/reactions/:emoji", requireAuth, requireVerifiedMember, async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.messageId) ? req.params.messageId[0] : req.params.messageId;
   const rawEmoji = Array.isArray(req.params.emoji) ? req.params.emoji[0] : req.params.emoji;
 

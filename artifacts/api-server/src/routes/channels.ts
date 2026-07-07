@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { eq, desc, lt, and } from "drizzle-orm";
-import { db, messagesTable, usersTable } from "@workspace/db";
+import { db, messagesTable } from "@workspace/db";
 import {
   GetChannelMessagesParams,
   GetChannelMessagesQueryParams,
@@ -8,14 +8,13 @@ import {
   SendMessageBody,
   GetPinnedMessageParams,
 } from "@workspace/api-zod";
-import { requireAuth, type AuthedRequest } from "../middlewares/auth";
+import { requireAuth, requireVerifiedMember, type AuthedRequest } from "../middlewares/auth";
 import { CHANNELS, getChannel } from "../lib/channels";
 import { fetchMessagesWithReactions, fetchSingleMessageWithReactions } from "../lib/messageHelper";
 import { broadcastNewMessage } from "../ws";
-import { createClerkClient } from "@clerk/express";
+import { getOrCreateUser } from "../lib/userProvisioning";
 import { logger } from "../lib/logger";
 
-const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 const router: IRouter = Router();
 
 // Rate limiting: userId → last message timestamp
@@ -23,13 +22,13 @@ const rateLimitMap = new Map<string, number>();
 const RATE_LIMIT_MS = 1000;
 
 // GET /channels — list all channels
-router.get("/channels", requireAuth, async (_req, res): Promise<void> => {
+router.get("/channels", requireAuth, requireVerifiedMember, async (_req, res): Promise<void> => {
   const channels = CHANNELS.map((c) => ({ ...c, unreadCount: 0 }));
   res.json(channels);
 });
 
 // GET /channels/:channelId/messages
-router.get("/channels/:channelId/messages", requireAuth, async (req, res): Promise<void> => {
+router.get("/channels/:channelId/messages", requireAuth, requireVerifiedMember, async (req, res): Promise<void> => {
   const params = GetChannelMessagesParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -107,7 +106,7 @@ router.get("/channels/:channelId/messages", requireAuth, async (req, res): Promi
 });
 
 // POST /channels/:channelId/messages — send a message
-router.post("/channels/:channelId/messages", requireAuth, async (req, res): Promise<void> => {
+router.post("/channels/:channelId/messages", requireAuth, requireVerifiedMember, async (req, res): Promise<void> => {
   const params = SendMessageParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -142,26 +141,7 @@ router.post("/channels/:channelId/messages", requireAuth, async (req, res): Prom
   rateLimitMap.set(userId, Date.now());
 
   try {
-    // JIT provision user profile
-    let [user] = await db.select().from(usersTable).where(eq(usersTable.userId, userId));
-    if (!user) {
-      try {
-        const clerkUser = await clerk.users.getUser(userId);
-        const username =
-          clerkUser.username ||
-          `${clerkUser.firstName ?? ""}${clerkUser.lastName ?? ""}`.trim() ||
-          `user_${userId.slice(-6)}`;
-        const avatarUrl = clerkUser.imageUrl ?? null;
-        const [created] = await db
-          .insert(usersTable)
-          .values({ userId, username, avatarUrl, role: "member" })
-          .onConflictDoNothing()
-          .returning();
-        user = created;
-      } catch (err) {
-        req.log.warn({ err }, "Failed to provision user from Clerk");
-      }
-    }
+    const user = await getOrCreateUser(userId);
 
     const username = user?.username ?? `user_${userId.slice(-6)}`;
     const avatarUrl = user?.avatarUrl ?? null;
@@ -201,7 +181,7 @@ router.post("/channels/:channelId/messages", requireAuth, async (req, res): Prom
 });
 
 // GET /channels/:channelId/pinned
-router.get("/channels/:channelId/pinned", requireAuth, async (req, res): Promise<void> => {
+router.get("/channels/:channelId/pinned", requireAuth, requireVerifiedMember, async (req, res): Promise<void> => {
   const params = GetPinnedMessageParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
