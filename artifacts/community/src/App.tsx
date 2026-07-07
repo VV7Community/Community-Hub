@@ -176,7 +176,7 @@ function LandingPage() {
         </h1>
 
         <p className="text-lg md:text-xl text-foreground/60 mb-10 max-w-xl leading-relaxed">
-          The exclusive real-time community room for serious investors.<br className="hidden md:block" />
+          The exclusive real-time community room for serious investors.{" "}
           Insights, webinars, and live discussion — all in one place.
         </p>
 
