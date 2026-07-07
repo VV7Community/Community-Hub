@@ -1,14 +1,19 @@
 import { Router, type IRouter } from "express";
-import { asc } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { db, eventsTable } from "@workspace/db";
 import { requireAuth, requireVerifiedMember, requireAdmin } from "../middlewares/auth";
 import { syncEvents } from "../lib/eventSync";
 
 const router: IRouter = Router();
 
-// GET /events
+// GET /events — only VectorVest Seminarie type events
 router.get("/events", requireAuth, requireVerifiedMember, async (_req, res): Promise<void> => {
-  const events = await db.select().from(eventsTable).orderBy(asc(eventsTable.date));
+  const events = await db
+    .select()
+    .from(eventsTable)
+    .where(eq(eventsTable.type, "seminar"))
+    .orderBy(asc(eventsTable.date));
+
   res.json(
     events.map((e) => ({
       id: e.id,

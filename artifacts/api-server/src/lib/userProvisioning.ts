@@ -63,9 +63,8 @@ export async function getOrCreateUser(userId: string): Promise<User | undefined>
   }
 
   const isBootstrapAdmin = isBootstrapAdminEmail(email) || (devAuthBypassEnabled && userId === "bjarne");
-  const verification = isBootstrapAdmin
-    ? ({ status: "verified", vectorVestMemberId: null } as const)
-    : await membershipVerifier.verify({ email, userId });
+  // Open access: everyone who signs in is immediately verified
+  const verification = { status: "verified" as const, vectorVestMemberId: null };
 
   const [created] = await db
     .insert(usersTable)

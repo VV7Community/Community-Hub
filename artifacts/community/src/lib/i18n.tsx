@@ -127,6 +127,8 @@ export const UI_STRINGS: Record<string, Record<Language, string>> = {
   "events.checkBackLater": { nl: "Kom later terug voor nieuwe meetups en conferenties.", fr: "Revenez plus tard pour de nouveaux meetups et conférences." },
   "events.event": { nl: "Evenement", fr: "Événement" },
   "events.type": { nl: "Type", fr: "Type" },
+  "events.viewAll": { nl: "Alle evenementen op vectorvest.eu/events", fr: "Tous les événements sur vectorvest.eu/events" },
+  "events.seminarsTitle": { nl: "VectorVest Seminaries", fr: "Séminaires VectorVest" },
 
   // Webinars
   "webinar.liveNow": { nl: "Live nu", fr: "En direct maintenant" },
@@ -140,6 +142,24 @@ export const UI_STRINGS: Record<string, Record<Language, string>> = {
   "webinar.liveChat": { nl: "Live Chat", fr: "Chat en direct" },
   "webinar.chatDuringLive": { nl: "Chat is beschikbaar tijdens live sessies.", fr: "Le chat est disponible pendant les sessions en direct." },
   "webinar.upNext": { nl: "Hierna", fr: "À venir" },
+  "webinar.upcomingWebinars": { nl: "Aankomende webinars", fr: "Webinaires à venir" },
+  "webinar.noUpcoming": { nl: "Geen geplande webinars.", fr: "Aucun webinaire planifié." },
+  "webinar.noRecordings": { nl: "Nog geen opnames beschikbaar.", fr: "Aucun enregistrement disponible pour l'instant." },
+  "webinar.recordings": { nl: "Opnames", fr: "Enregistrements" },
+  "webinar.joinLive": { nl: "Deelnemen aan live sessie", fr: "Rejoindre la session en direct" },
+  "webinar.hostControls": { nl: "Beheerdersbediening", fr: "Contrôles animateur" },
+  "webinar.goLive": { nl: "Live gaan", fr: "Démarrer en direct" },
+  "webinar.endStream": { nl: "Sessie beëindigen", fr: "Terminer la session" },
+  "webinar.addRecordingUrl": { nl: "Opname-URL toevoegen", fr: "Ajouter l'URL d'enregistrement" },
+  "webinar.recordingUrlPlaceholder": { nl: "https://...", fr: "https://..." },
+  "webinar.saveRecording": { nl: "Opslaan", fr: "Enregistrer" },
+  "webinar.subtitles": { nl: "Ondertiteling", fr: "Sous-titres" },
+  "webinar.enableSubtitles": { nl: "Ondertiteling inschakelen", fr: "Activer les sous-titres" },
+  "webinar.disableSubtitles": { nl: "Ondertiteling uitschakelen", fr: "Désactiver les sous-titres" },
+  "webinar.liveSubtitles": { nl: "Live ondertiteling", fr: "Sous-titres en direct" },
+  "webinar.watchRecording": { nl: "Opname bekijken", fr: "Voir l'enregistrement" },
+  "webinar.duration": { nl: "Duur", fr: "Durée" },
+  "webinar.session": { nl: "Sessie", fr: "Session" },
 
   // University
   "university.title": { nl: "VectorVest University", fr: "VectorVest University" },

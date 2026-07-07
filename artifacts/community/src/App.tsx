@@ -177,14 +177,8 @@ function LandingPage() {
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <Link
-            href="/sign-up"
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-gradient-to-b from-[hsl(38_58%_62%)] to-[hsl(38_52%_52%)] px-10 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background min-w-[170px]"
-          >
-            {t("landing.signUp")}
-          </Link>
-          <Link
             href="/sign-in"
-            className="inline-flex h-12 items-center justify-center rounded-lg border border-white/15 bg-white/5 px-10 text-sm font-bold text-foreground shadow-sm transition-all hover:bg-white/10 hover:border-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-w-[170px]"
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-gradient-to-b from-[hsl(38_58%_62%)] to-[hsl(38_52%_52%)] px-10 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background min-w-[170px]"
           >
             {t("landing.signIn")}
           </Link>
@@ -231,8 +225,12 @@ function MembershipGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!me || me.membershipStatus !== "verified") {
-    return <MembershipPendingPage />;
+  if (!me) {
+    return (
+      <div className="h-[100dvh] w-full flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return <Shell>{children}</Shell>;

@@ -1,112 +1,116 @@
 import { useListEvents, getListEventsQueryKey } from "@workspace/api-client-react";
 import { format } from "date-fns";
-import { MapPin, CalendarDays, Clock, ArrowRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { nl, fr } from "date-fns/locale";
+import { MapPin, Clock, ArrowUpRight, CalendarDays } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export default function EventsPage() {
-  const { data: events } = useListEvents({ query: { queryKey: getListEventsQueryKey() }});
-  const { t } = useI18n();
+  const { data: events } = useListEvents({ query: { queryKey: getListEventsQueryKey() } });
+  const { t, language } = useI18n();
 
-  // Group events by month; events without a date are treated as on-demand
-  const groupedEvents = events?.reduce((acc, event) => {
+  const dateLocale = language === "fr" ? fr : nl;
+
+  // Group by month
+  const grouped = events?.reduce((acc, event) => {
     if (!event.date) return acc;
-    const month = format(new Date(event.date), "MMMM yyyy");
-    if (!acc[month]) acc[month] = [];
-    acc[month].push(event);
+    const key = format(new Date(event.date), "MMMM yyyy", { locale: dateLocale });
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(event);
     return acc;
-  }, {} as Record<string, typeof events>);
-
-  const onDemandEvents = events?.filter((e) => !e.date) ?? [];
+  }, {} as Record<string, NonNullable<typeof events>>);
 
   return (
-    <div className="h-full w-full overflow-y-auto bg-background p-6">
-      <div className="max-w-4xl mx-auto space-y-10">
-        
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">{t("events.title")}</h1>
-          <p className="text-muted-foreground">{t("events.subtitle")}</p>
+    <div className="h-full w-full overflow-y-auto bg-background">
+      <div className="max-w-3xl mx-auto px-6 py-10 space-y-10">
+
+        {/* Header */}
+        <div className="border-b border-border pb-8 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-widest text-primary">{t("nav.events")}</p>
+          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+            {t("events.title")}
+          </h1>
+          <p className="text-muted-foreground text-sm leading-relaxed max-w-xl">
+            {t("events.subtitle")}
+          </p>
+          <a
+            href="https://vectorvest.eu/events"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline font-medium mt-1"
+          >
+            {t("events.viewAll")} <ArrowUpRight className="w-3.5 h-3.5" />
+          </a>
         </div>
 
-        <div className="space-y-12">
-          {groupedEvents && Object.entries(groupedEvents).map(([month, monthEvents]) => (
-            <div key={month} className="space-y-6">
-              <h2 className="text-xl font-bold border-b border-border pb-2 text-primary">{month}</h2>
-              
-              <div className="space-y-4">
-                {monthEvents.map(event => (
-                  <div key={event.id} className="group bg-card border border-border rounded-xl p-0 flex flex-col sm:flex-row overflow-hidden hover:border-primary/50 transition-colors">
-                    
-                    {/* Date Block */}
-                    <div className="bg-sidebar border-b sm:border-b-0 sm:border-r border-border p-6 flex flex-col items-center justify-center min-w-[120px] shrink-0">
-                      <span className="text-sm font-bold text-primary uppercase tracking-widest">{format(new Date(event.date), "MMM")}</span>
-                      <span className="text-4xl font-black font-mono mt-1">{format(new Date(event.date), "dd")}</span>
-                    </div>
-                    
-                    {/* Content Block */}
-                    <div className="p-6 flex-1 flex flex-col justify-center relative">
-                      <div className="flex justify-between items-start mb-2">
-                        <Badge variant="outline" className="bg-background">{event.type || t("events.event")}</Badge>
+        {/* Event list */}
+        {grouped && Object.entries(grouped).length > 0 ? (
+          <div className="space-y-10">
+            {Object.entries(grouped).map(([month, monthEvents]) => (
+              <div key={month} className="space-y-4">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground border-b border-border pb-2">
+                  {month}
+                </h2>
+                <div className="space-y-3">
+                  {monthEvents.map(event => (
+                    <div
+                      key={event.id}
+                      className="group flex gap-0 border border-border rounded-lg overflow-hidden hover:border-primary/50 transition-colors bg-card"
+                    >
+                      {/* Date block */}
+                      <div className="w-20 sm:w-24 bg-sidebar border-r border-border flex flex-col items-center justify-center py-5 shrink-0">
+                        <span className="text-[11px] font-bold text-primary uppercase tracking-widest">
+                          {format(new Date(event.date!), "MMM", { locale: dateLocale })}
+                        </span>
+                        <span className="text-3xl font-black font-mono mt-0.5 leading-none">
+                          {format(new Date(event.date!), "dd")}
+                        </span>
                       </div>
-                      
-                      <h3 className="text-xl font-bold mb-2">{event.title}</h3>
-                      <p className="text-muted-foreground text-sm mb-4 max-w-2xl">{event.description}</p>
-                      
-                      <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-muted-foreground mt-auto">
-                        <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-md"><Clock className="w-3.5 h-3.5" /> {format(new Date(event.date), "h:mm a")}</span>
-                        {event.location && (
-                          <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-md"><MapPin className="w-3.5 h-3.5" /> {event.location}</span>
-                        )}
-                      </div>
-                      
-                      <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 hidden sm:block">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                          <ArrowRight className="w-5 h-5" />
+
+                      {/* Content */}
+                      <div className="flex-1 px-5 py-4 min-w-0 relative">
+                        <h3 className="font-bold text-base leading-snug mb-2">{event.title}</h3>
+                        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground font-mono">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {format(new Date(event.date!), "HH:mm")}
+                          </span>
+                          {event.location && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {event.location}
+                            </span>
+                          )}
+                        </div>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ArrowUpRight className="w-4 h-4 text-primary" />
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        ) : (
+          <div className="py-24 text-center border border-dashed border-border rounded-lg">
+            <CalendarDays className="w-10 h-10 text-muted-foreground/20 mx-auto mb-4" />
+            <p className="font-semibold mb-1">{t("events.noEvents")}</p>
+            <p className="text-muted-foreground text-sm">{t("events.checkBackLater")}</p>
+          </div>
+        )}
 
-          {onDemandEvents.length > 0 && (
-            <div className="space-y-6">
-              <h2 className="text-xl font-bold border-b border-border pb-2 text-primary">{t("events.onDemand")}</h2>
-              <div className="space-y-4">
-                {onDemandEvents.map(event => (
-                  <div key={event.id} className="group bg-card border border-border rounded-xl p-0 flex flex-col sm:flex-row overflow-hidden hover:border-primary/50 transition-colors">
-                    <div className="bg-sidebar border-b sm:border-b-0 sm:border-r border-border p-6 flex flex-col items-center justify-center min-w-[120px] shrink-0">
-                      <span className="text-sm font-bold text-primary uppercase tracking-widest">{t("events.any")}</span>
-                      <span className="text-4xl font-black font-mono mt-1">—</span>
-                    </div>
-                    <div className="p-6 flex-1 flex flex-col justify-center relative">
-                      <div className="flex justify-between items-start mb-2">
-                        <Badge variant="outline" className="bg-background">{event.type || t("events.event")}</Badge>
-                      </div>
-                      <h3 className="text-xl font-bold mb-2">{event.title}</h3>
-                      <p className="text-muted-foreground text-sm mb-4 max-w-2xl">{event.description}</p>
-                      {event.location && (
-                        <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-muted-foreground mt-auto">
-                          <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-md"><MapPin className="w-3.5 h-3.5" /> {event.location}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {(!events || events.length === 0) && (
-            <div className="py-20 text-center border border-dashed border-border rounded-xl">
-              <CalendarDays className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-              <h3 className="text-lg font-bold mb-1">{t("events.noEvents")}</h3>
-              <p className="text-muted-foreground">{t("events.checkBackLater")}</p>
-            </div>
-          )}
+        {/* Footer link */}
+        <div className="pt-4 border-t border-border text-center">
+          <a
+            href="https://vectorvest.eu/events"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            {t("events.viewAll")} <ArrowUpRight className="w-4 h-4" />
+          </a>
         </div>
+
       </div>
     </div>
   );
