@@ -1,5 +1,7 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
+import { eq } from "drizzle-orm";
+import { db, usersTable } from "@workspace/db";
 import { logger } from "../lib/logger";
 
 interface ClientInfo {
@@ -69,11 +71,23 @@ export function setupWebSocket(server: Server): void {
     logger.info({ url: req.url }, "WebSocket connection opened");
     (ws as any)._isAlive = true;
 
-    ws.on("message", (data) => {
+    ws.on("message", async (data) => {
       try {
         const msg = JSON.parse(data.toString());
 
         if (msg.type === "auth" && msg.userId && msg.username) {
+          // Only verified VectorVest members may join presence/broadcast — a
+          // pending/rejected user must not receive live chat over the socket
+          // even though their REST calls are already blocked.
+          const [user] = await db
+            .select({ membershipStatus: usersTable.membershipStatus })
+            .from(usersTable)
+            .where(eq(usersTable.userId, msg.userId));
+          if (!user || user.membershipStatus !== "verified") {
+            ws.close(4403, "Membership not verified");
+            return;
+          }
+
           // Register this client
           clients.set(ws, {
             userId: msg.userId,

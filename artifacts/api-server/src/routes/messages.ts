@@ -6,15 +6,18 @@ import {
   AddReactionParams,
   AddReactionBody,
   RemoveReactionParams,
+  PinMessageParams,
+  PinMessageBody,
 } from "@workspace/api-zod";
-import { requireAuth, type AuthedRequest } from "../middlewares/auth";
+import { requireAuth, requireVerifiedMember, requireAdmin, type AuthedRequest } from "../middlewares/auth";
 import { fetchSingleMessageWithReactions } from "../lib/messageHelper";
 import { broadcastReactionUpdate, broadcastMessageDelete } from "../ws";
+import { getOrCreateUser } from "../lib/userProvisioning";
 
 const router: IRouter = Router();
 
 // DELETE /messages/:messageId
-router.delete("/messages/:messageId", requireAuth, async (req, res): Promise<void> => {
+router.delete("/messages/:messageId", requireAuth, requireVerifiedMember, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.messageId) ? req.params.messageId[0] : req.params.messageId;
   const params = DeleteMessageParams.safeParse({ messageId: parseInt(raw, 10) });
   if (!params.success) {
@@ -34,10 +37,13 @@ router.delete("/messages/:messageId", requireAuth, async (req, res): Promise<voi
     return;
   }
 
-  // Only the author can delete their message
+  // The author can delete their own message; admins can delete any message
   if (message.userId !== userId) {
-    res.status(403).json({ error: "You can only delete your own messages" });
-    return;
+    const user = await getOrCreateUser(userId);
+    if (user?.role !== "admin") {
+      res.status(403).json({ error: "You can only delete your own messages" });
+      return;
+    }
   }
 
   await db.delete(messagesTable).where(eq(messagesTable.id, params.data.messageId));
@@ -46,8 +52,45 @@ router.delete("/messages/:messageId", requireAuth, async (req, res): Promise<voi
   res.sendStatus(204);
 });
 
+// PUT /messages/:messageId/pin — admin only
+router.put(
+  "/messages/:messageId/pin",
+  requireAuth,
+  requireVerifiedMember,
+  requireAdmin,
+  async (req, res): Promise<void> => {
+    const raw = Array.isArray(req.params.messageId) ? req.params.messageId[0] : req.params.messageId;
+    const params = PinMessageParams.safeParse({ messageId: parseInt(raw, 10) });
+    if (!params.success) {
+      res.status(400).json({ error: params.error.message });
+      return;
+    }
+
+    const body = PinMessageBody.safeParse(req.body);
+    if (!body.success) {
+      res.status(400).json({ error: body.error.message });
+      return;
+    }
+
+    const [updated] = await db
+      .update(messagesTable)
+      .set({ isPinned: body.data.pinned })
+      .where(eq(messagesTable.id, params.data.messageId))
+      .returning();
+
+    if (!updated) {
+      res.status(404).json({ error: "Message not found" });
+      return;
+    }
+
+    const userId = (req as AuthedRequest).userId;
+    const formatted = await fetchSingleMessageWithReactions(params.data.messageId, userId);
+    res.json(formatted);
+  },
+);
+
 // POST /messages/:messageId/reactions — toggle a reaction
-router.post("/messages/:messageId/reactions", requireAuth, async (req, res): Promise<void> => {
+router.post("/messages/:messageId/reactions", requireAuth, requireVerifiedMember, async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.messageId) ? req.params.messageId[0] : req.params.messageId;
   const params = AddReactionParams.safeParse({ messageId: parseInt(raw, 10) });
   if (!params.success) {
@@ -106,7 +149,7 @@ router.post("/messages/:messageId/reactions", requireAuth, async (req, res): Pro
 });
 
 // DELETE /messages/:messageId/reactions/:emoji
-router.delete("/messages/:messageId/reactions/:emoji", requireAuth, async (req, res): Promise<void> => {
+router.delete("/messages/:messageId/reactions/:emoji", requireAuth, requireVerifiedMember, async (req, res): Promise<void> => {
   const rawId = Array.isArray(req.params.messageId) ? req.params.messageId[0] : req.params.messageId;
   const rawEmoji = Array.isArray(req.params.emoji) ? req.params.emoji[0] : req.params.emoji;
 

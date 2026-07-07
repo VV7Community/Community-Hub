@@ -6,6 +6,7 @@ import usersRouter from "./users";
 import webinarsRouter from "./webinars";
 import eventsRouter from "./events";
 import universityRouter from "./university";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(usersRouter);
 router.use(webinarsRouter);
 router.use(eventsRouter);
 router.use(universityRouter);
+router.use(adminRouter);
 
 export default router;

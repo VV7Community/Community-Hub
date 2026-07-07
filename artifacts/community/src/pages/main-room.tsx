@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useListChannels, getListChannelsQueryKey,
   useGetChannelMessages, getGetChannelMessagesQueryKey,
@@ -12,7 +13,8 @@ import {
   Message,
   getGetMeQueryKey,
 } from "@workspace/api-client-react";
-import { Hash, Lock, Volume2, Pin, Send, SmilePlus, ChevronDown, Menu, X, Users } from "lucide-react";
+import { Hash, Lock, Pin, PinOff, Send, SmilePlus, ChevronDown, Menu, X, Users } from "lucide-react";
+import { usePinMessage } from "@workspace/api-client-react";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -21,9 +23,18 @@ import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Message item ─────────────────────────────────────────────────
-function MessageItem({ message, currentUserId }: { message: Message; currentUserId?: string }) {
+function MessageItem({ message, channelId, isAdmin }: { message: Message; channelId: string; isAdmin: boolean }) {
   const addReaction = useAddReaction();
   const removeReaction = useRemoveReaction();
+  const queryClient = useQueryClient();
+  const pinMessage = usePinMessage({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetPinnedMessageQueryKey(channelId) });
+        queryClient.invalidateQueries({ queryKey: getGetChannelMessagesQueryKey(channelId, {}) });
+      },
+    },
+  });
 
   const handleReaction = (emoji: string, hasReacted: boolean) => {
     if (hasReacted) {
@@ -32,6 +43,8 @@ function MessageItem({ message, currentUserId }: { message: Message; currentUser
       addReaction.mutate({ messageId: message.id, data: { emoji } });
     }
   };
+
+  const showTeamBadge = channelId === "vv7-daily" && message.authorRole === "admin";
 
   return (
     <motion.div
@@ -46,7 +59,12 @@ function MessageItem({ message, currentUserId }: { message: Message; currentUser
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 flex-wrap">
           <span className="font-semibold text-[15px]">{message.username}</span>
-          <span className="text-xs text-muted-foreground">{format(new Date(message.createdAt), "MMM d, h:mm a")}</span>
+          {showTeamBadge && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-primary/20 text-primary">
+              VectorVest Team
+            </span>
+          )}
+          <span className="text-xs text-muted-foreground">{format(new Date(message.createdAt), "dd/MM HH:mm")}</span>
         </div>
         <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed mt-1 break-words">
           {message.content}
@@ -84,6 +102,15 @@ function MessageItem({ message, currentUserId }: { message: Message; currentUser
             {e}
           </button>
         ))}
+        {isAdmin && (
+          <button
+            onClick={() => pinMessage.mutate({ messageId: message.id, data: { pinned: !message.isPinned } })}
+            title={message.isPinned ? "Losmaken" : "Vastmaken"}
+            className="p-1.5 hover:bg-muted last:rounded-r-md text-muted-foreground hover:text-foreground border-l border-border"
+          >
+            {message.isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+          </button>
+        )}
       </div>
     </motion.div>
   );
@@ -91,9 +118,8 @@ function MessageItem({ message, currentUserId }: { message: Message; currentUser
 
 // ─── Channel list (shared by sidebar + drawer) ────────────────────
 const CATEGORIES = [
-  { id: "WELCOME",   label: "Welcome" },
+  { id: "INFO",      label: "Info" },
   { id: "COMMUNITY", label: "Community" },
-  { id: "RESOURCES", label: "Resources" },
 ];
 
 function ChannelList({ channels, channelId, onSelect, me }: {
@@ -118,6 +144,7 @@ function ChannelList({ channels, channelId, onSelect, me }: {
                 <div className="space-y-0.5">
                   {cats.map(c => {
                     const isActive = c.id === channelId;
+                    const showLock = cat.id === "INFO" || !c.writable;
                     return (
                       <Link
                         key={c.id}
@@ -130,18 +157,14 @@ function ChannelList({ channels, channelId, onSelect, me }: {
                             : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                         )}
                       >
-                        {!c.writable ? (
+                        {showLock ? (
                           <Lock className="w-4 h-4 shrink-0 opacity-50" />
-                        ) : cat.id === "WELCOME" ? (
-                          <Volume2 className="w-4 h-4 shrink-0 opacity-70" />
                         ) : (
                           <Hash className="w-4 h-4 shrink-0 opacity-70" />
                         )}
                         <span className="truncate">{c.name}</span>
                         {c.unreadCount ? (
-                          <span className="ml-auto bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold shrink-0">
-                            {c.unreadCount}
-                          </span>
+                          <span className="ml-auto w-2 h-2 rounded-full bg-destructive shrink-0" aria-label="Unread messages" />
                         ) : null}
                       </Link>
                     );
@@ -175,7 +198,7 @@ function ChannelList({ channels, channelId, onSelect, me }: {
 // ─── Main Room ────────────────────────────────────────────────────
 export default function MainRoom() {
   const params = useParams();
-  const channelId = params.channelId || "main-chat";
+  const channelId = params.channelId || "chat";
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { data: channels } = useListChannels({ query: { queryKey: getListChannelsQueryKey() } });
@@ -308,7 +331,7 @@ export default function MainRoom() {
         <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3" ref={scrollRef}>
           <AnimatePresence initial={false}>
             {messages?.slice().reverse().map(msg => (
-              <MessageItem key={msg.id} message={msg} currentUserId={me?.userId} />
+              <MessageItem key={msg.id} message={msg} channelId={channelId} isAdmin={me?.role === "admin"} />
             ))}
           </AnimatePresence>
           {messages?.length === 0 && (
@@ -348,7 +371,11 @@ export default function MainRoom() {
           ) : (
             <div className="bg-muted border border-border rounded-lg p-3 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
               <Lock className="w-4 h-4 shrink-0" />
-              <span>This channel is read-only.</span>
+              <span>
+                {currentChannel?.category === "INFO"
+                  ? "This is an official channel — only the VectorVest team can post here."
+                  : "Only the VectorVest team posts here — react to join the conversation."}
+              </span>
             </div>
           )}
         </div>

@@ -13,9 +13,16 @@ export type ChannelCategory = typeof ChannelCategory[keyof typeof ChannelCategor
 
 
 export const ChannelCategory = {
-  WELCOME: 'WELCOME',
+  INFO: 'INFO',
   COMMUNITY: 'COMMUNITY',
-  RESOURCES: 'RESOURCES',
+} as const;
+
+export type ChannelPostPermission = typeof ChannelPostPermission[keyof typeof ChannelPostPermission];
+
+
+export const ChannelPostPermission = {
+  all: 'all',
+  admin: 'admin',
 } as const;
 
 export interface Channel {
@@ -23,10 +30,20 @@ export interface Channel {
   name: string;
   description: string;
   category: ChannelCategory;
+  postPermission?: ChannelPostPermission;
+  /** Whether the requesting user can post in this channel right now */
   writable: boolean;
   icon: string;
   unreadCount?: number;
 }
+
+export type MessageAuthorRole = typeof MessageAuthorRole[keyof typeof MessageAuthorRole];
+
+
+export const MessageAuthorRole = {
+  admin: 'admin',
+  member: 'member',
+} as const;
 
 export interface ReactionGroup {
   emoji: string;
@@ -41,10 +58,15 @@ export interface Message {
   username: string;
   /** @nullable */
   avatarUrl?: string | null;
+  authorRole: MessageAuthorRole;
   content: string;
   createdAt: string;
   reactions: ReactionGroup[];
   isPinned: boolean;
+}
+
+export interface PinMessageInput {
+  pinned: boolean;
 }
 
 export interface MessageInput {
@@ -67,12 +89,22 @@ export const UserProfileRole = {
   member: 'member',
 } as const;
 
+export type UserProfileMembershipStatus = typeof UserProfileMembershipStatus[keyof typeof UserProfileMembershipStatus];
+
+
+export const UserProfileMembershipStatus = {
+  pending: 'pending',
+  verified: 'verified',
+  rejected: 'rejected',
+} as const;
+
 export interface UserProfile {
   userId: string;
   username: string;
   /** @nullable */
   avatarUrl?: string | null;
   role: UserProfileRole;
+  membershipStatus: UserProfileMembershipStatus;
 }
 
 export interface UserProfileUpdate {
@@ -148,6 +180,64 @@ export interface Course {
   isLocked?: boolean;
 }
 
+export type MemberSummaryRole = typeof MemberSummaryRole[keyof typeof MemberSummaryRole];
+
+
+export const MemberSummaryRole = {
+  admin: 'admin',
+  member: 'member',
+} as const;
+
+export type MemberSummaryMembershipStatus = typeof MemberSummaryMembershipStatus[keyof typeof MemberSummaryMembershipStatus];
+
+
+export const MemberSummaryMembershipStatus = {
+  pending: 'pending',
+  verified: 'verified',
+  rejected: 'rejected',
+} as const;
+
+export interface MemberSummary {
+  userId: string;
+  username: string;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
+  role: MemberSummaryRole;
+  membershipStatus: MemberSummaryMembershipStatus;
+  /** @nullable */
+  membershipMethod: string | null;
+  /** @nullable */
+  membershipVerifiedAt: string | null;
+  createdAt: string;
+}
+
+export interface VerifyMemberInput {
+  vectorVestMemberId?: string;
+}
+
+export interface RejectMemberInput {
+  reason?: string;
+}
+
+export interface AllowlistEntry {
+  id: number;
+  email: string;
+  /** @nullable */
+  vectorVestMemberId: string | null;
+  addedBy: string;
+  addedAt: string;
+  /** @nullable */
+  notes: string | null;
+}
+
+export interface AllowlistEntryInput {
+  email: string;
+  vectorVestMemberId?: string;
+  notes?: string;
+}
+
 export type GetChannelMessagesParams = {
 /**
  * Cursor for pagination - get messages before this message ID
@@ -155,4 +245,17 @@ export type GetChannelMessagesParams = {
 before?: number;
 limit?: number;
 };
+
+export type ListMembersParams = {
+status?: ListMembersStatus;
+};
+
+export type ListMembersStatus = typeof ListMembersStatus[keyof typeof ListMembersStatus];
+
+
+export const ListMembersStatus = {
+  pending: 'pending',
+  verified: 'verified',
+  rejected: 'rejected',
+} as const;
 

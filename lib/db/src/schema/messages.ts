@@ -8,6 +8,7 @@ export const messagesTable = pgTable("messages", {
   userId: text("user_id").notNull(),
   username: text("username").notNull(),
   avatarUrl: text("avatar_url"),
+  authorRole: text("author_role").notNull().default("member"), // admin | member, denormalized at post time
   content: text("content").notNull(),
   isPinned: boolean("is_pinned").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

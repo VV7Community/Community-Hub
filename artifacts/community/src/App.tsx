@@ -8,6 +8,8 @@ import { ClerkProvider, SignIn, SignUp, Show, useClerk } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
 import { shadcn } from '@clerk/themes';
 import { useEffect, useRef } from 'react';
+import { useGetMe, getGetMeQueryKey } from '@workspace/api-client-react';
+import { Loader2 } from 'lucide-react';
 
 // Import Pages
 import { Shell } from '@/components/layout/Shell';
@@ -17,6 +19,10 @@ import UniversityPage from '@/pages/university';
 import EventsPage from '@/pages/events';
 import AccountPage from '@/pages/account';
 import SupportPage from '@/pages/support';
+import MembershipPendingPage from '@/pages/membership-pending';
+import AdminMembersPage from '@/pages/admin/members';
+import { AuthLayout } from '@/components/layout/AuthLayout';
+import { BrandLogo, LogoMark } from '@/components/brand/BrandLogo';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
@@ -31,17 +37,14 @@ if (!clerkPubKey) {
 }
 
 // ── VectorVest navy + gold Clerk theme ────────────────────────────
+// Cardless: the form sits inside our own AuthLayout panel, so Clerk renders
+// transparent and we supply the branding around it.
 const clerkAppearance = {
   theme: shadcn,
   cssLayerName: "clerk",
-  options: {
-    logoPlacement: "inside" as const,
-    logoLinkUrl: basePath || "/",
-    logoImageUrl: `${window.location.origin}${basePath}/vv-logo.png`,
-  },
   variables: {
     colorPrimary:          "hsl(38 52% 57%)",   // gold
-    colorBackground:       "hsl(237 51% 18%)",  // navy card
+    colorBackground:       "transparent",
     colorForeground:       "hsl(210 40% 96%)",
     colorMutedForeground:  "hsl(220 20% 58%)",
     colorInput:            "hsl(237 43% 22%)",
@@ -49,32 +52,30 @@ const clerkAppearance = {
     colorNeutral:          "hsl(237 43% 26%)",
     colorDanger:           "hsl(0 62% 38%)",
     fontFamily:            "'Inter', sans-serif",
-    borderRadius:          "0.5rem",
+    borderRadius:          "0.625rem",
   },
   elements: {
-    rootBox:                       "w-full flex justify-center",
-    cardBox:                       "rounded-2xl w-[440px] max-w-full overflow-hidden border border-[hsl(237_43%_26%)] shadow-2xl",
-    card:                          "!shadow-none !border-0 !rounded-none",
-    footer:                        "!shadow-none !border-0 !rounded-none",
-    headerTitle:                   "text-foreground font-bold text-xl",
-    headerSubtitle:                "text-muted-foreground",
+    rootBox:                       "w-full",
+    cardBox:                       "w-full !shadow-none !border-0 !bg-transparent",
+    card:                          "!shadow-none !border-0 !bg-transparent !p-0",
+    header:                        "text-left mb-2",
+    headerTitle:                   "text-foreground font-bold text-2xl font-display tracking-tight",
+    headerSubtitle:                "text-muted-foreground text-sm mt-1",
     socialButtonsBlockButtonText:  "text-foreground font-medium",
-    formFieldLabel:                "text-foreground font-medium",
-    footerActionLink:              "text-primary hover:text-primary/90",
+    formFieldLabel:                "text-foreground font-medium text-sm",
+    footerActionLink:              "text-primary font-semibold hover:text-primary/90",
     footerActionText:              "text-muted-foreground",
-    dividerText:                   "text-muted-foreground",
+    dividerText:                   "text-muted-foreground text-xs uppercase tracking-wider",
     identityPreviewEditButton:     "text-primary",
     formFieldSuccessText:          "text-primary",
     alertText:                     "text-foreground",
-    logoBox:                       "mb-2 px-2",
-    logoImage:                     "h-8 w-auto object-contain",
-    socialButtonsBlockButton:      "border-border hover:bg-accent bg-background text-foreground",
-    formButtonPrimary:             "bg-primary hover:bg-primary/90 text-primary-foreground font-bold",
-    formFieldInput:                "bg-input border-border text-foreground placeholder:text-muted-foreground",
+    socialButtonsBlockButton:      "border-border hover:bg-accent bg-card/60 text-foreground h-11 rounded-lg transition-colors",
+    formButtonPrimary:             "bg-gradient-to-b from-[hsl(38_58%_62%)] to-[hsl(38_52%_52%)] hover:from-[hsl(38_58%_66%)] hover:to-[hsl(38_52%_56%)] text-primary-foreground font-bold rounded-lg h-11 shadow-lg shadow-primary/20 transition-all",
+    formFieldInput:                "bg-input/50 border-border h-11 rounded-lg text-foreground placeholder:text-muted-foreground/50 focus:border-primary transition-colors",
     footerAction:                  "bg-transparent",
     dividerLine:                   "bg-border",
-    alert:                         "bg-destructive/20 border-destructive",
-    otpCodeFieldInput:             "border-border bg-input text-foreground",
+    alert:                         "bg-destructive/20 border-destructive rounded-lg",
+    otpCodeFieldInput:             "border-border bg-input/50 text-foreground rounded-lg",
     formFieldRow:                  "mb-4",
     main:                          "w-full",
   },
@@ -83,26 +84,17 @@ const clerkAppearance = {
 // ── Sign-in / Sign-up pages ────────────────────────────────────────
 function SignInPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 relative overflow-hidden">
-      {/* Decorative diagonal */}
-      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden opacity-5">
-        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-primary rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-primary rounded-full blur-3xl" />
-      </div>
+    <AuthLayout>
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
-    </div>
+    </AuthLayout>
   );
 }
 
 function SignUpPage() {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-background px-4 relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden opacity-5">
-        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-primary rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-primary rounded-full blur-3xl" />
-      </div>
+    <AuthLayout>
       <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
-    </div>
+    </AuthLayout>
   );
 }
 
@@ -137,80 +129,74 @@ function LandingPage() {
       </div>
 
       {/* Top bar — mirrors the nav */}
-      <header className="relative z-10 flex items-center justify-between px-8 py-5 border-b border-white/5">
-        <img
-          src={`${basePath}/vv-logo.png`}
-          alt="VectorVest"
-          className="h-8 w-auto object-contain opacity-90"
-        />
+      <header className="relative z-10 flex items-center justify-between px-6 sm:px-8 py-5 border-b border-white/5">
+        <BrandLogo size="sm" />
         <Link
           href="/sign-in"
           className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
         >
-          Sign In →
+          Inloggen →
         </Link>
       </header>
 
       {/* Hero */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center">
 
-        {/* VV icon — large */}
+        {/* VV mark — large, crisp, with a soft gold halo */}
         <div className="mb-8">
-          <img
-            src={`${basePath}/vv-icon.jpeg`}
-            alt="VectorVest"
-            className="w-24 h-24 rounded-2xl shadow-2xl border border-white/10 mx-auto"
-            style={{ boxShadow: '0 0 60px hsl(38 52% 57% / 0.25)' }}
+          <LogoMark
+            className="w-20 h-20 sm:w-24 sm:h-24 mx-auto"
+            style={{ filter: 'drop-shadow(0 0 48px hsl(38 52% 57% / 0.28))' }}
           />
         </div>
 
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-semibold tracking-wider uppercase mb-6">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          Live Community · Europe
+          Live Community · België & Nederland
         </div>
 
         {/* Heading */}
-        <h1 className="font-display text-5xl md:text-6xl font-bold text-foreground mb-4 leading-tight">
+        <h1 className="font-display text-5xl md:text-6xl font-bold text-foreground mb-4 leading-tight text-balance">
           VectorVest<br />
           <span className="text-primary">Community</span>
         </h1>
 
-        <p className="text-lg md:text-xl text-foreground/60 mb-10 max-w-xl leading-relaxed">
-          The exclusive real-time community room for serious investors.{" "}
-          Insights, webinars, and live discussion — all in one place.
+        <p className="text-lg md:text-xl text-foreground/60 mb-10 max-w-xl leading-relaxed text-balance">
+          De besloten community voor serieuze beleggers. Realtime discussie,
+          webinars en dagelijkse VectorVest-analyses — allemaal op één plek.
         </p>
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4 items-center">
           <Link
-            href="/sign-in"
-            className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-10 text-sm font-bold text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:shadow-primary/30 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-w-[160px]"
+            href="/sign-up"
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-gradient-to-b from-[hsl(38_58%_62%)] to-[hsl(38_52%_52%)] px-10 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background min-w-[170px]"
           >
-            Sign In
+            Word lid
           </Link>
           <Link
-            href="/sign-up"
-            className="inline-flex h-12 items-center justify-center rounded-md border border-white/20 bg-white/5 px-10 text-sm font-bold text-foreground shadow-sm transition-all hover:bg-white/10 hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-w-[160px]"
+            href="/sign-in"
+            className="inline-flex h-12 items-center justify-center rounded-lg border border-white/15 bg-white/5 px-10 text-sm font-bold text-foreground shadow-sm transition-all hover:bg-white/10 hover:border-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-w-[170px]"
           >
-            Join Community
+            Inloggen
           </Link>
         </div>
 
         {/* Trust bar */}
-        <div className="mt-16 flex items-center gap-8 text-foreground/30 text-xs font-medium tracking-wide">
-          <span>1M+ TRUSTED INVESTORS</span>
+        <div className="mt-16 flex items-center gap-6 sm:gap-8 text-foreground/30 text-xs font-medium tracking-wide">
+          <span>37 JAAR ERVARING</span>
           <span className="w-1 h-1 rounded-full bg-foreground/20" />
-          <span>15K+ REVIEWS</span>
+          <span>1M+ BELEGGERS</span>
           <span className="w-1 h-1 rounded-full bg-foreground/20" />
-          <span>37 YEARS OF EXPERIENCE</span>
+          <span>BE · NL</span>
         </div>
       </main>
 
       {/* Footer */}
       <footer className="relative z-10 flex justify-center pb-6">
         <p className="text-foreground/25 text-xs">
-          © {new Date().getFullYear()} VectorVest Europe. All rights reserved.
+          © {new Date().getFullYear()} VectorVest Community België &amp; Nederland.
         </p>
       </footer>
     </div>
@@ -221,19 +207,55 @@ function LandingPage() {
 function HomeRedirect() {
   return (
     <>
-      <Show when="signed-in"><Redirect to="/room/main-chat" /></Show>
+      <Show when="signed-in"><Redirect to="/room/chat" /></Show>
       <Show when="signed-out"><LandingPage /></Show>
     </>
   );
 }
 
+function MembershipGate({ children }: { children: React.ReactNode }) {
+  const { data: me, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
+
+  if (isLoading) {
+    return (
+      <div className="h-[100dvh] w-full flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!me || me.membershipStatus !== "verified") {
+    return <MembershipPendingPage />;
+  }
+
+  return <Shell>{children}</Shell>;
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <Show when="signed-in"><Shell>{children}</Shell></Show>
+      <Show when="signed-in"><MembershipGate>{children}</MembershipGate></Show>
       <Show when="signed-out"><Redirect to="/sign-in" /></Show>
     </>
   );
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { data: me, isLoading } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
+
+  if (isLoading) {
+    return (
+      <div className="h-[100dvh] w-full flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!me || me.membershipStatus !== "verified" || me.role !== "admin") {
+    return <Redirect to="/room/chat" />;
+  }
+
+  return <Shell>{children}</Shell>;
 }
 
 function ClerkQueryClientCacheInvalidator() {
@@ -295,6 +317,9 @@ function ClerkProviderWithRoutes() {
           </Route>
           <Route path="/account">
             <ProtectedRoute><AccountPage /></ProtectedRoute>
+          </Route>
+          <Route path="/admin/members">
+            <AdminRoute><AdminMembersPage /></AdminRoute>
           </Route>
 
           <Route component={NotFound} />

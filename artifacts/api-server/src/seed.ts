@@ -154,74 +154,146 @@ async function seed() {
     console.log("✓ Courses seeded");
   }
 
-  // ── Welcome message ──────────────────────────────────────────────────────────
-  const welcomeMessages = await db
+  // ── #aankondigingen ───────────────────────────────────────────────────────────
+  const aankondigingenMessages = await db
     .select()
     .from(messagesTable)
-    .where(eq(messagesTable.channelId, "welcome"));
+    .where(eq(messagesTable.channelId, "aankondigingen"));
 
-  if (welcomeMessages.length === 0) {
+  if (aankondigingenMessages.length === 0) {
     await db.insert(messagesTable).values([
       {
-        channelId: "welcome",
+        channelId: "aankondigingen",
         userId: "system",
         username: "VectorVest Team",
         avatarUrl: null,
+        authorRole: "admin",
         content:
-          "Bienvenue dans la communauté VectorVest Europe ! 🎉 Nous sommes ravis de vous accueillir. Explorez les canaux, posez vos questions et partagez vos stratégies. Ensemble, investissons mieux.",
+          "Welkom in de VectorVest België & Nederland community! 🎉 Verken de kanalen links, stel je vragen in #vraag-maar-raak en deel je analyses in #aandelen-bespreken.",
+        isPinned: false,
+      },
+    ]);
+    console.log("✓ #aankondigingen seeded");
+  }
+
+  // ── #regels — one pinned post, never changes ──────────────────────────────────
+  const regelsMessages = await db
+    .select()
+    .from(messagesTable)
+    .where(eq(messagesTable.channelId, "regels"));
+
+  if (regelsMessages.length === 0) {
+    await db.insert(messagesTable).values([
+      {
+        channelId: "regels",
+        userId: "system",
+        username: "VectorVest Team",
+        avatarUrl: null,
+        authorRole: "admin",
+        content:
+          "📋 Community richtlijnen\n\n1. Respecteer elkaar — geen persoonlijke aanvallen of ongepaste taal.\n2. Deel analyses, geen garanties — onderbouw je aandelenkeuzes met data (VST/RV/RS), niet met beloftes.\n3. Geen spam of ongevraagde reclame.\n4. Blijf bij het onderwerp van het kanaal.\n5. Meld misbruik aan een moderator in plaats van zelf te escaleren.",
         isPinned: true,
       },
     ]);
-    console.log("✓ Welcome message seeded");
+    console.log("✓ #regels seeded");
   }
 
-  // ── Sample messages in main-chat ─────────────────────────────────────────────
-  const mainChatMessages = await db
+  // ── #disclaimer — fixed legal disclaimer, pinned ───────────────────────────────
+  const disclaimerMessages = await db
     .select()
     .from(messagesTable)
-    .where(eq(messagesTable.channelId, "main-chat"));
+    .where(eq(messagesTable.channelId, "disclaimer"));
 
-  if (mainChatMessages.length === 0) {
-    const pinned = await db.insert(messagesTable).values({
-      channelId: "main-chat",
-      userId: "system",
-      username: "VectorVest Team",
-      avatarUrl: null,
-      content:
-        "📌 Règle du canal : respectez les autres membres, partagez des analyses constructives et ne faites jamais de recommandations financières directes. Bon trading à tous !",
-      isPinned: true,
-    }).returning();
-
+  if (disclaimerMessages.length === 0) {
     await db.insert(messagesTable).values([
       {
-        channelId: "main-chat",
+        channelId: "disclaimer",
+        userId: "system",
+        username: "VectorVest Team",
+        avatarUrl: null,
+        authorRole: "admin",
+        content:
+          "VectorVest is een analysetool. Niets in deze community vormt financieel advies. Beleggen brengt risico's met zich mee.",
+        isPinned: true,
+      },
+    ]);
+    console.log("✓ #disclaimer seeded");
+  }
+
+  // ── #chat — free general conversation ──────────────────────────────────────────
+  const chatMessages = await db
+    .select()
+    .from(messagesTable)
+    .where(eq(messagesTable.channelId, "chat"));
+
+  if (chatMessages.length === 0) {
+    await db.insert(messagesTable).values([
+      {
+        channelId: "chat",
         userId: "sample_user_1",
         username: "InvestisseurPro",
         avatarUrl: null,
+        authorRole: "member",
         content:
-          "Bonjour à tous ! Le marché est particulièrement agité ce matin. Les techs européennes rebondissent après la correction de la semaine dernière.",
+          "Goeiemorgen allemaal! De markt is best actief vandaag, de Europese techaandelen veren mooi terug na de correctie van vorige week.",
         isPinned: false,
       },
       {
-        channelId: "main-chat",
+        channelId: "chat",
         userId: "sample_user_2",
         username: "TradeurActif",
         avatarUrl: null,
+        authorRole: "member",
         content:
-          "Oui, j'ai vu ça. VectorVest donne un signal 'Buy' sur plusieurs valeurs du CAC40. Quelqu'un d'autre a des positions ouvertes ?",
-        isPinned: false,
-      },
-      {
-        channelId: "main-chat",
-        userId: "sample_user_3",
-        username: "AnalysteMarché",
-        avatarUrl: null,
-        content:
-          "Je suis rentré sur Schneider Electric hier. RV > 1.0, GRT solide et le secteur de l'énergie est en pleine rotation haussière selon VectorVest.",
+          "Klopt, VectorVest geeft een 'Buy'-signaal op verschillende AEX-waarden. Heeft nog iemand hier posities open staan?",
         isPinned: false,
       },
     ]);
-    console.log("✓ Main-chat messages seeded");
+    console.log("✓ #chat seeded");
+  }
+
+  // ── #vv7-daily — daily market post by admin ───────────────────────────────────
+  const vv7DailyMessages = await db
+    .select()
+    .from(messagesTable)
+    .where(eq(messagesTable.channelId, "vv7-daily"));
+
+  if (vv7DailyMessages.length === 0) {
+    await db.insert(messagesTable).values([
+      {
+        channelId: "vv7-daily",
+        userId: "system",
+        username: "VectorVest Team",
+        avatarUrl: null,
+        authorRole: "admin",
+        content:
+          "📊 VV7 Daily — 7 juli 2026\n\nColorGuard: 🟢 Groen\nMTI: 1.04 (boven 1.0)\nPrimary Wave: Stijgend\n\nDe markt blijft in bullish territorium — blijf posities monitoren op RT en RV.",
+        isPinned: false,
+      },
+    ]);
+    console.log("✓ #vv7-daily seeded");
+  }
+
+  // ── #aandelen-bespreken — sample stock pick with scores ────────────────────────
+  const aandelenMessages = await db
+    .select()
+    .from(messagesTable)
+    .where(eq(messagesTable.channelId, "aandelen-bespreken"));
+
+  if (aandelenMessages.length === 0) {
+    await db.insert(messagesTable).values([
+      {
+        channelId: "aandelen-bespreken",
+        userId: "sample_user_3",
+        username: "AnalysteMarché",
+        avatarUrl: null,
+        authorRole: "member",
+        content:
+          "Ben gisteren ingestapt op Schneider Electric — VST 1.42, RV 1.18, RS 1.05. De energiesector zit duidelijk in een bullish rotatie volgens VectorVest.",
+        isPinned: false,
+      },
+    ]);
+    console.log("✓ #aandelen-bespreken seeded");
   }
 
   console.log("✅ Database seeding complete");

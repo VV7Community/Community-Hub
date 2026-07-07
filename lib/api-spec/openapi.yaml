@@ -15,6 +15,7 @@ tags:
   - name: webinars
   - name: events
   - name: university
+  - name: admin
 
 paths:
   /healthz:
@@ -134,6 +135,38 @@ paths:
       responses:
         "204":
           description: Deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /messages/{messageId}/pin:
+    put:
+      operationId: pinMessage
+      tags: [messages]
+      summary: Pin or unpin a message (admin only)
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PinMessageInput"
+      responses:
+        "200":
+          description: Updated message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
         "401":
           description: Unauthorized
         "403":
@@ -324,6 +357,159 @@ paths:
         "401":
           description: Unauthorized
 
+  /admin/members:
+    get:
+      operationId: listMembers
+      tags: [admin]
+      summary: List members, optionally filtered by membership status
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, verified, rejected]
+      responses:
+        "200":
+          description: Members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MemberSummary"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /admin/members/{userId}/verify:
+    post:
+      operationId: verifyMember
+      tags: [admin]
+      summary: Manually mark a member as verified VectorVest customer
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyMemberInput"
+      responses:
+        "200":
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberSummary"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /admin/members/{userId}/reject:
+    post:
+      operationId: rejectMember
+      tags: [admin]
+      summary: Manually reject a member's VectorVest membership claim
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectMemberInput"
+      responses:
+        "200":
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberSummary"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
+  /admin/allowlist:
+    get:
+      operationId: listAllowlist
+      tags: [admin]
+      summary: List the VectorVest member email allowlist
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: Allowlist entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AllowlistEntry"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+    post:
+      operationId: addAllowlistEntry
+      tags: [admin]
+      summary: Add an email to the VectorVest member allowlist
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AllowlistEntryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllowlistEntry"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /admin/allowlist/{id}:
+    delete:
+      operationId: removeAllowlistEntry
+      tags: [admin]
+      summary: Remove an email from the VectorVest member allowlist
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
 components:
   securitySchemes:
     cookieAuth:
@@ -351,9 +537,13 @@ components:
           type: string
         category:
           type: string
-          enum: [WELCOME, COMMUNITY, RESOURCES]
+          enum: [INFO, COMMUNITY]
+        postPermission:
+          type: string
+          enum: [all, admin]
         writable:
           type: boolean
+          description: Whether the requesting user can post in this channel right now
         icon:
           type: string
         unreadCount:
@@ -361,7 +551,7 @@ components:
 
     Message:
       type: object
-      required: [id, channelId, userId, username, content, createdAt, reactions, isPinned]
+      required: [id, channelId, userId, username, authorRole, content, createdAt, reactions, isPinned]
       properties:
         id:
           type: integer
@@ -373,6 +563,9 @@ components:
           type: string
         avatarUrl:
           type: ["string", "null"]
+        authorRole:
+          type: string
+          enum: [admin, member]
         content:
           type: string
         createdAt:
@@ -383,6 +576,13 @@ components:
           items:
             $ref: "#/components/schemas/ReactionGroup"
         isPinned:
+          type: boolean
+
+    PinMessageInput:
+      type: object
+      required: [pinned]
+      properties:
+        pinned:
           type: boolean
 
     MessageInput:
@@ -414,7 +614,7 @@ components:
 
     UserProfile:
       type: object
-      required: [userId, username, role]
+      required: [userId, username, role, membershipStatus]
       properties:
         userId:
           type: string
@@ -425,6 +625,9 @@ components:
         role:
           type: string
           enum: [admin, member]
+        membershipStatus:
+          type: string
+          enum: [pending, verified, rejected]
 
     UserProfileUpdate:
       type: object
@@ -519,3 +722,72 @@ components:
           type: ["string", "null"]
         isLocked:
           type: boolean
+
+    MemberSummary:
+      type: object
+      required: [userId, username, email, role, membershipStatus, membershipMethod, membershipVerifiedAt, createdAt]
+      properties:
+        userId:
+          type: string
+        username:
+          type: string
+        email:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [admin, member]
+        membershipStatus:
+          type: string
+          enum: [pending, verified, rejected]
+        membershipMethod:
+          type: ["string", "null"]
+        membershipVerifiedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    VerifyMemberInput:
+      type: object
+      properties:
+        vectorVestMemberId:
+          type: string
+
+    RejectMemberInput:
+      type: object
+      properties:
+        reason:
+          type: string
+
+    AllowlistEntry:
+      type: object
+      required: [id, email, vectorVestMemberId, addedBy, addedAt, notes]
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        vectorVestMemberId:
+          type: ["string", "null"]
+        addedBy:
+          type: string
+        addedAt:
+          type: string
+          format: date-time
+        notes:
+          type: ["string", "null"]
+
+    AllowlistEntryInput:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+        vectorVestMemberId:
+          type: string
+        notes:
+          type: string

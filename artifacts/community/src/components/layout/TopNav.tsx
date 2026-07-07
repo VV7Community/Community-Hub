@@ -1,12 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Video, BookOpen, Calendar, UserCircle, Headphones } from "lucide-react";
+import { MessageSquare, Video, BookOpen, Calendar, UserCircle, Headphones, ShieldCheck } from "lucide-react";
 import { useClerk } from "@clerk/react";
-
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 
 const navItems = [
-  { label: "Main Room",  path: "/room/main-chat", icon: MessageSquare, activeMatches: ["/room"] },
+  { label: "Main Room",  path: "/room/chat", icon: MessageSquare, activeMatches: ["/room"] },
   { label: "Webinar",    path: "/webinar",         icon: Video,         activeMatches: ["/webinar"] },
   { label: "University", path: "/university",      icon: BookOpen,      activeMatches: ["/university"] },
   { label: "Events",     path: "/events",          icon: Calendar,      activeMatches: ["/events"] },
@@ -17,18 +17,15 @@ const navItems = [
 export function TopNav() {
   const [location] = useLocation();
   const { user } = useClerk();
+  const { data: me } = useGetMe({ query: { queryKey: getGetMeQueryKey() } });
 
   return (
     <nav className="h-14 border-b border-sidebar-border bg-sidebar px-4 flex items-center shrink-0 shadow-lg z-20 relative">
       {/* Brand mark */}
-      <Link href="/" className="flex items-center gap-3 shrink-0 group">
-        <img
-          src={`${basePath}/vv-logo.png`}
-          alt="VectorVest"
-          className="h-7 w-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity"
-        />
-        <span className="text-[10px] font-semibold tracking-widest text-primary/70 uppercase mt-0.5 hidden lg:block">
-          Community Europe
+      <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+        <BrandLogo size="sm" />
+        <span className="text-[10px] font-semibold tracking-widest text-primary/70 uppercase mt-0.5 hidden lg:block border-l border-sidebar-border pl-2.5 ml-0.5">
+          België &amp; Nederland
         </span>
       </Link>
 
@@ -63,6 +60,20 @@ export function TopNav() {
       {/* User avatar — always visible */}
       {user && (
         <div className="flex items-center gap-2 shrink-0">
+          {me?.role === "admin" && (
+            <Link
+              href="/admin/members"
+              title="Member verification"
+              className={cn(
+                "hidden sm:flex items-center justify-center w-8 h-8 rounded-full transition-colors",
+                location.startsWith("/admin")
+                  ? "text-primary bg-primary/10"
+                  : "text-sidebar-foreground/50 hover:text-sidebar-foreground/80 hover:bg-white/5"
+              )}
+            >
+              <ShieldCheck className="w-4 h-4" />
+            </Link>
+          )}
           <span className="text-xs font-medium text-sidebar-foreground/60 hidden md:block">
             {user.username || user.firstName}
           </span>

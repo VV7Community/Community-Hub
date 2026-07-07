@@ -7,6 +7,7 @@ export interface FormattedMessage {
   userId: string;
   username: string;
   avatarUrl: string | null;
+  authorRole: string;
   content: string;
   createdAt: Date;
   reactions: Array<{ emoji: string; count: number; userReacted: boolean }>;
@@ -93,6 +94,7 @@ export async function fetchMessagesWithReactions(
       userId: m.userId,
       username: m.username,
       avatarUrl: m.avatarUrl ?? null,
+      authorRole: m.authorRole,
       content: m.content,
       createdAt: m.createdAt,
       reactions: reactionGroups,
@@ -137,6 +139,7 @@ export async function fetchSingleMessageWithReactions(
     userId: message.userId,
     username: message.username,
     avatarUrl: message.avatarUrl ?? null,
+    authorRole: message.authorRole,
     content: message.content,
     createdAt: message.createdAt,
     reactions: reactionGroups,

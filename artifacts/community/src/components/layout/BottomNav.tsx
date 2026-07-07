@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { MessageSquare, Video, BookOpen, Calendar, UserCircle, HeadphonesIcon } from "lucide-react";
 
 const navItems = [
-  { label: "Room",       path: "/room/main-chat", icon: MessageSquare,  match: "/room" },
+  { label: "Room",       path: "/room/chat", icon: MessageSquare,  match: "/room" },
   { label: "Webinar",    path: "/webinar",         icon: Video,          match: "/webinar" },
   { label: "University", path: "/university",      icon: BookOpen,       match: "/university" },
   { label: "Events",     path: "/events",          icon: Calendar,       match: "/events" },

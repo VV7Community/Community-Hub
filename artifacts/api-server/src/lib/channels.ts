@@ -1,75 +1,70 @@
+export type ChannelCategory = "INFO" | "COMMUNITY";
+export type PostPermission = "all" | "admin";
+
 export const CHANNELS = [
   {
-    id: "welcome",
-    name: "welcome",
-    description: "Welcome to the VectorVest Investor Community!",
-    category: "WELCOME" as const,
-    writable: false,
-    icon: "👋",
+    id: "aankondigingen",
+    name: "aankondigingen",
+    description: "Officiële aankondigingen van VectorVest België & Nederland",
+    category: "INFO" as ChannelCategory,
+    postPermission: "admin" as PostPermission,
+    icon: "📢",
   },
   {
-    id: "main-chat",
-    name: "main-chat",
-    description: "Discuss everything related to investing and Vectorvest",
-    category: "COMMUNITY" as const,
-    writable: true,
+    id: "regels",
+    name: "regels",
+    description: "Community richtlijnen — dit kanaal verandert nooit",
+    category: "INFO" as ChannelCategory,
+    postPermission: "admin" as PostPermission,
+    icon: "📋",
+  },
+  {
+    id: "disclaimer",
+    name: "disclaimer",
+    description: "Juridische disclaimer",
+    category: "INFO" as ChannelCategory,
+    postPermission: "admin" as PostPermission,
+    icon: "⚖️",
+  },
+  {
+    id: "chat",
+    name: "chat",
+    description: "Vrij algemeen gesprek",
+    category: "COMMUNITY" as ChannelCategory,
+    postPermission: "all" as PostPermission,
     icon: "💬",
   },
   {
-    id: "strategies",
-    name: "strategies",
-    description: "Share and discuss investment strategies",
-    category: "COMMUNITY" as const,
-    writable: true,
-    icon: "📊",
-  },
-  {
-    id: "q-a",
-    name: "q-a",
-    description: "Ask questions and get answers from the community",
-    category: "COMMUNITY" as const,
-    writable: true,
+    id: "vraag-maar-raak",
+    name: "vraag-maar-raak",
+    description: "Platformvragen, how-to's en vragen over signalen",
+    category: "COMMUNITY" as ChannelCategory,
+    postPermission: "all" as PostPermission,
     icon: "❓",
   },
   {
-    id: "stocks",
-    name: "stocks",
-    description: "Stock picks, watchlists and market analysis",
-    category: "COMMUNITY" as const,
-    writable: true,
+    id: "vv7-daily",
+    name: "vv7-daily",
+    description: "Dagelijkse marktpost: ColorGuard, MTI en Primary Wave. Reageren kan, nieuwe topics niet.",
+    category: "COMMUNITY" as ChannelCategory,
+    postPermission: "admin" as PostPermission,
+    icon: "📊",
+  },
+  {
+    id: "aandelen-bespreken",
+    name: "aandelen-bespreken",
+    description: "Deel aandelenkeuzes met VST/RV/RS-scores en een korte onderbouwing",
+    category: "COMMUNITY" as ChannelCategory,
+    postPermission: "all" as PostPermission,
     icon: "📈",
   },
   {
-    id: "tutorials",
-    name: "tutorials",
-    description: "Step-by-step guides to mastering VectorVest",
-    category: "RESOURCES" as const,
-    writable: false,
-    icon: "🎓",
-  },
-  {
-    id: "important-news",
-    name: "important-news",
-    description: "Critical market news and platform announcements",
-    category: "RESOURCES" as const,
-    writable: false,
-    icon: "🔔",
-  },
-  {
-    id: "calendar",
-    name: "calendar",
-    description: "Upcoming webinars, sessions and community events",
-    category: "RESOURCES" as const,
-    writable: false,
-    icon: "📅",
-  },
-  {
-    id: "rules",
-    name: "rules",
-    description: "Community guidelines and rules of engagement",
-    category: "RESOURCES" as const,
-    writable: false,
-    icon: "📋",
+    id: "unisearch-recepten",
+    name: "unisearch-recepten",
+    description: "Deel werkende UniSearch-opzetjes en -filters",
+    category: "COMMUNITY" as ChannelCategory,
+    postPermission: "all" as PostPermission,
+    icon: "🔍",
   },
 ];
 
@@ -77,4 +72,8 @@ export type Channel = (typeof CHANNELS)[number];
 
 export function getChannel(channelId: string): Channel | undefined {
   return CHANNELS.find((c) => c.id === channelId);
+}
+
+export function canPostInChannel(channel: Channel, role: string): boolean {
+  return channel.postPermission === "all" || role === "admin";
 }
