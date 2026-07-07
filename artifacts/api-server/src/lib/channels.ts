@@ -59,8 +59,8 @@ export const CHANNELS = [
     icon: "📈",
   },
   {
-    id: "unisearch-strategien",
-    name: "unisearch-strategien",
+    id: "unisearch",
+    name: "unisearch",
     description: "Deel werkende UniSearch-opzetjes en -filters. ProTrader-filters krijgen een 🔷 tag.",
     category: "COMMUNITY" as ChannelCategory,
     postPermission: "all" as PostPermission,

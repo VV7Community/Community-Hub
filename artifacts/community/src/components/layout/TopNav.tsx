@@ -77,11 +77,17 @@ export function TopNav() {
           <span className="text-xs font-medium text-sidebar-foreground/60 hidden md:block">
             {user.username || user.firstName}
           </span>
-          <img
-            src={user.imageUrl}
-            alt="Avatar"
-            className="w-8 h-8 rounded-full border-2 border-primary/30 shadow"
-          />
+          {user.imageUrl ? (
+            <img
+              src={user.imageUrl}
+              alt="Avatar"
+              className="w-8 h-8 rounded-full border-2 border-primary/30 shadow"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full border-2 border-primary/30 shadow bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+              {(user.username || user.firstName || "?").slice(0, 2).toUpperCase()}
+            </div>
+          )}
         </div>
       )}
     </nav>

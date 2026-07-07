@@ -35,6 +35,9 @@ import type {
   PinMessageInput,
   ReactionInput,
   RejectMemberInput,
+  SyncEvents200,
+  TranslateRequest,
+  TranslateResponse,
   UserProfile,
   UserProfileUpdate,
   VerifyMemberInput,
@@ -966,6 +969,146 @@ export function useGetOnlineUsers<TData = Awaited<ReturnType<typeof getOnlineUse
 
 
 
+
+export const getSyncEventsUrl = () => {
+
+
+
+
+  return `/api/events/sync`
+}
+
+/**
+ * @summary Scrape and refresh VectorVest EU events (admin only)
+ */
+export const syncEvents = async ( options?: RequestInit): Promise<SyncEvents200> => {
+
+  return customFetch<SyncEvents200>(getSyncEventsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSyncEventsMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncEvents>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof syncEvents>>, TError,void, TContext> => {
+
+const mutationKey = ['syncEvents'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof syncEvents>>, void> = () => {
+
+
+          return  syncEvents(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SyncEventsMutationResult = NonNullable<Awaited<ReturnType<typeof syncEvents>>>
+
+    export type SyncEventsMutationError = ErrorType<void>
+
+    /**
+ * @summary Scrape and refresh VectorVest EU events (admin only)
+ */
+export const useSyncEvents = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncEvents>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof syncEvents>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSyncEventsMutationOptions(options));
+    }
+
+export const getTranslateTextUrl = () => {
+
+
+
+
+  return `/api/translate`
+}
+
+/**
+ * @summary Translate a text snippet to the user's preferred language
+ */
+export const translateText = async (translateRequest: TranslateRequest, options?: RequestInit): Promise<TranslateResponse> => {
+
+  return customFetch<TranslateResponse>(getTranslateTextUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(translateRequest)
+  }
+);}
+
+
+
+
+export const getTranslateTextMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof translateText>>, TError,{data: BodyType<TranslateRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof translateText>>, TError,{data: BodyType<TranslateRequest>}, TContext> => {
+
+const mutationKey = ['translateText'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof translateText>>, {data: BodyType<TranslateRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  translateText(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TranslateTextMutationResult = NonNullable<Awaited<ReturnType<typeof translateText>>>
+    export type TranslateTextMutationBody = BodyType<TranslateRequest>
+    export type TranslateTextMutationError = ErrorType<void>
+
+    /**
+ * @summary Translate a text snippet to the user's preferred language
+ */
+export const useTranslateText = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof translateText>>, TError,{data: BodyType<TranslateRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof translateText>>,
+        TError,
+        {data: BodyType<TranslateRequest>},
+        TContext
+      > => {
+      return useMutation(getTranslateTextMutationOptions(options));
+    }
 
 export const getListWebinarsUrl = () => {
 

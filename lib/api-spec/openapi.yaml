@@ -303,6 +303,56 @@ paths:
         "401":
           description: Unauthorized
 
+  /events/sync:
+    post:
+      operationId: syncEvents
+      tags: [events]
+      summary: Scrape and refresh VectorVest EU events (admin only)
+      security: [{ cookieAuth: [] }]
+      responses:
+        "200":
+          description: Number of events synced
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [synced]
+                properties:
+                  synced:
+                    type: integer
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "502":
+          description: Could not reach external events page
+
+  /translate:
+    post:
+      operationId: translateText
+      tags: [messages]
+      summary: Translate a text snippet to the user's preferred language
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranslateRequest"
+      responses:
+        "200":
+          description: Translated text
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranslateResponse"
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "429":
+          description: Translation quota exceeded
+
   /webinars:
     get:
       operationId: listWebinars
@@ -614,7 +664,7 @@ components:
 
     UserProfile:
       type: object
-      required: [userId, username, role, membershipStatus]
+      required: [userId, username, role, membershipStatus, language]
       properties:
         userId:
           type: string
@@ -628,6 +678,10 @@ components:
         membershipStatus:
           type: string
           enum: [pending, verified, rejected]
+        language:
+          type: string
+          enum: [nl, fr]
+          default: nl
 
     UserProfileUpdate:
       type: object
@@ -635,6 +689,9 @@ components:
         username:
           type: string
           minLength: 2
+        language:
+          type: string
+          enum: [nl, fr]
 
     OnlineUsersResponse:
       type: object
@@ -697,6 +754,27 @@ components:
         location:
           type: ["string", "null"]
         type:
+          type: string
+        sourceUrl:
+          type: ["string", "null"]
+
+    TranslateRequest:
+      type: object
+      required: [text, targetLanguage]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        targetLanguage:
+          type: string
+          enum: [nl, fr]
+
+    TranslateResponse:
+      type: object
+      required: [translatedText]
+      properties:
+        translatedText:
           type: string
 
     Course:

@@ -1,7 +1,8 @@
 import { Router, type IRouter } from "express";
 import { asc } from "drizzle-orm";
 import { db, eventsTable } from "@workspace/db";
-import { requireAuth, requireVerifiedMember } from "../middlewares/auth";
+import { requireAuth, requireVerifiedMember, requireAdmin } from "../middlewares/auth";
+import { syncEvents } from "../lib/eventSync";
 
 const router: IRouter = Router();
 
@@ -16,8 +17,20 @@ router.get("/events", requireAuth, requireVerifiedMember, async (_req, res): Pro
       date: e.date,
       location: e.location ?? null,
       type: e.type,
+      sourceUrl: e.sourceUrl ?? null,
     })),
   );
+});
+
+// POST /events/sync — scrape VectorVest EU events and refresh the DB
+router.post("/events/sync", requireAuth, requireVerifiedMember, requireAdmin, async (_req, res): Promise<void> => {
+  try {
+    const synced = await syncEvents();
+    res.json({ synced });
+  } catch (err) {
+    console.error("Events sync failed", err);
+    res.status(502).json({ error: (err as Error).message || "Could not sync events from VectorVest website" });
+  }
 });
 
 export default router;

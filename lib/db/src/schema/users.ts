@@ -14,6 +14,7 @@ export const usersTable = pgTable(
     membershipStatus: text("membership_status").notNull().default("pending"),
     membershipVerifiedAt: timestamp("membership_verified_at", { withTimezone: true }),
     membershipMethod: text("membership_method"), // manual | api | sso
+    language: text("language").notNull().default("nl"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
   },

@@ -29,8 +29,8 @@ const CATEGORIES: { id: ChannelCategory; label: string }[] = [
 ];
 
 const RESOURCES = [
-  { id: "slides", label: "Slides", icon: FileText },
-  { id: "files", label: "Files", icon: File },
+  { id: "slides", label: "Slides", icon: FileText, href: "/resources/slides" },
+  { id: "files", label: "Files", icon: File, href: "/resources/files" },
 ];
 
 export function ChatSidebar({ channels, activeChannelId, me, onItemClick }: ChatSidebarProps) {
@@ -95,14 +95,20 @@ export function ChatSidebar({ channels, activeChannelId, me, onItemClick }: Chat
             </h3>
             <div className="space-y-0.5">
               {RESOURCES.map((r) => (
-                <button
+                <Link
                   key={r.id}
+                  href={r.href}
                   onClick={onItemClick}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                  className={cn(
+                    "flex min-h-[40px] items-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition-colors touch-manipulation",
+                    location.startsWith(r.href)
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                  )}
                 >
                   <r.icon className="h-4 w-4 shrink-0 opacity-70" />
                   <span className="truncate">{r.label}</span>
-                </button>
+                </Link>
               ))}
             </div>
           </section>
@@ -144,7 +150,7 @@ export function ChatSidebar({ channels, activeChannelId, me, onItemClick }: Chat
         <div className="flex items-center gap-3 border-t border-sidebar-border bg-sidebar/80 p-3">
           <div className="relative">
             <Avatar className="h-8 w-8 border border-border">
-              <AvatarImage src={me.avatarUrl || undefined} />
+              {me.avatarUrl && <AvatarImage src={me.avatarUrl} />}
               <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
                 {me.username.slice(0, 2).toUpperCase()}
               </AvatarFallback>

@@ -2,6 +2,7 @@ import http from "http";
 import app from "./app";
 import { logger } from "./lib/logger";
 import { setupWebSocket } from "./ws";
+import { scheduleEventSync } from "./lib/startupSync";
 
 // Hard guard: DEV_AUTH_BYPASS must never run in production.
 if (
@@ -34,4 +35,5 @@ setupWebSocket(server);
 
 server.listen(port, () => {
   logger.info({ port }, "Server listening");
+  scheduleEventSync();
 });

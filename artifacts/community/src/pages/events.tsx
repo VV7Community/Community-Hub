@@ -6,13 +6,16 @@ import { Badge } from "@/components/ui/badge";
 export default function EventsPage() {
   const { data: events } = useListEvents({ query: { queryKey: getListEventsQueryKey() }});
 
-  // Group events by month
+  // Group events by month; events without a date are treated as on-demand
   const groupedEvents = events?.reduce((acc, event) => {
+    if (!event.date) return acc;
     const month = format(new Date(event.date), "MMMM yyyy");
     if (!acc[month]) acc[month] = [];
     acc[month].push(event);
     return acc;
   }, {} as Record<string, typeof events>);
+
+  const onDemandEvents = events?.filter((e) => !e.date) ?? [];
 
   return (
     <div className="h-full w-full overflow-y-auto bg-background p-6">
@@ -65,6 +68,34 @@ export default function EventsPage() {
               </div>
             </div>
           ))}
+
+          {onDemandEvents.length > 0 && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold border-b border-border pb-2 text-primary">On demand</h2>
+              <div className="space-y-4">
+                {onDemandEvents.map(event => (
+                  <div key={event.id} className="group bg-card border border-border rounded-xl p-0 flex flex-col sm:flex-row overflow-hidden hover:border-primary/50 transition-colors">
+                    <div className="bg-sidebar border-b sm:border-b-0 sm:border-r border-border p-6 flex flex-col items-center justify-center min-w-[120px] shrink-0">
+                      <span className="text-sm font-bold text-primary uppercase tracking-widest">Any</span>
+                      <span className="text-4xl font-black font-mono mt-1">—</span>
+                    </div>
+                    <div className="p-6 flex-1 flex flex-col justify-center relative">
+                      <div className="flex justify-between items-start mb-2">
+                        <Badge variant="outline" className="bg-background">{event.type || "Event"}</Badge>
+                      </div>
+                      <h3 className="text-xl font-bold mb-2">{event.title}</h3>
+                      <p className="text-muted-foreground text-sm mb-4 max-w-2xl">{event.description}</p>
+                      {event.location && (
+                        <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-muted-foreground mt-auto">
+                          <span className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-md"><MapPin className="w-3.5 h-3.5" /> {event.location}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {(!events || events.length === 0) && (
             <div className="py-20 text-center border border-dashed border-border rounded-xl">

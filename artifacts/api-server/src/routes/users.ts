@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq } from "drizzle-orm";
 import { db, usersTable } from "@workspace/db";
 import { UpdateMeBody } from "@workspace/api-zod";
-import { requireAuth, type AuthedRequest } from "../middlewares/auth";
+import { requireAuth, requireAdmin, type AuthedRequest } from "../middlewares/auth";
 import { getOnlineCount, getOnlineUsersList } from "../ws";
 import { getOrCreateUser } from "../lib/userProvisioning";
 
@@ -23,6 +23,7 @@ router.get("/users/me", requireAuth, async (req, res): Promise<void> => {
       avatarUrl: user.avatarUrl ?? null,
       role: user.role,
       membershipStatus: user.membershipStatus,
+      language: user.language ?? "nl",
     });
   } catch (err) {
     req.log.error({ err }, "Error fetching user profile");
@@ -41,31 +42,23 @@ router.put("/users/me", requireAuth, async (req, res): Promise<void> => {
   const userId = (req as AuthedRequest).userId;
 
   try {
+    const user = await getOrCreateUser(userId);
+    if (!user) {
+      res.status(500).json({ error: "Could not load user profile" });
+      return;
+    }
     const [updated] = await db
       .update(usersTable)
-      .set({ username: body.data.username, updatedAt: new Date() })
+      .set({
+        username: body.data.username ?? user.username,
+        language: body.data.language ?? user.language,
+        updatedAt: new Date(),
+      })
       .where(eq(usersTable.userId, userId))
       .returning();
 
     if (!updated) {
-      // User doesn't exist yet — create first
-      await getOrCreateUser(userId);
-      const [retry] = await db
-        .update(usersTable)
-        .set({ username: body.data.username, updatedAt: new Date() })
-        .where(eq(usersTable.userId, userId))
-        .returning();
-      if (!retry) {
-        res.status(500).json({ error: "Could not update profile" });
-        return;
-      }
-      res.json({
-        userId: retry.userId,
-        username: retry.username,
-        avatarUrl: retry.avatarUrl ?? null,
-        role: retry.role,
-        membershipStatus: retry.membershipStatus,
-      });
+      res.status(500).json({ error: "Could not update profile" });
       return;
     }
 
@@ -75,6 +68,7 @@ router.put("/users/me", requireAuth, async (req, res): Promise<void> => {
       avatarUrl: updated.avatarUrl ?? null,
       role: updated.role,
       membershipStatus: updated.membershipStatus,
+      language: updated.language,
     });
   } catch (err) {
     req.log.error({ err }, "Error updating user profile");

@@ -21,11 +21,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { SupportTicket } from "@/components/chat/SupportTicket";
+import { MessageTranslation } from "@/components/chat/MessageTranslation";
+import { useI18n } from "@/lib/i18n";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Message item ─────────────────────────────────────────────────
 function MessageItem({ message, channelId, isAdmin }: { message: Message; channelId: string; isAdmin: boolean }) {
+  const { language } = useI18n();
   const addReaction = useAddReaction();
   const removeReaction = useRemoveReaction();
   const queryClient = useQueryClient();
@@ -55,7 +58,7 @@ function MessageItem({ message, channelId, isAdmin }: { message: Message; channe
       className="group relative flex gap-3 hover:bg-muted/50 p-2 rounded-md transition-colors"
     >
       <Avatar className="w-9 h-9 shrink-0 border border-border mt-0.5">
-        <AvatarImage src={message.avatarUrl || undefined} />
+        {message.avatarUrl && <AvatarImage src={message.avatarUrl} />}
         <AvatarFallback>{message.username.slice(0, 2).toUpperCase()}</AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
@@ -71,6 +74,8 @@ function MessageItem({ message, channelId, isAdmin }: { message: Message; channe
         <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed mt-1 break-words">
           {message.content}
         </p>
+
+        <MessageTranslation text={message.content} />
 
         {message.reactions && message.reactions.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
@@ -120,6 +125,7 @@ function MessageItem({ message, channelId, isAdmin }: { message: Message; channe
 
 // ─── Main Room ────────────────────────────────────────────────────
 export default function MainRoom() {
+  const { t, language } = useI18n();
   const params = useParams();
   const channelId = params.channelId || "chat";
   const isSupportView = channelId === "support";
@@ -229,7 +235,7 @@ export default function MainRoom() {
                   <path d="M22 17H2a3 3 0 0 0 3-3V9a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a3 3 0 0 0 3 3zm-10-6v6" />
                 </svg>
               </div>
-              <h2 className="font-bold text-base sm:text-lg truncate">Support Team</h2>
+              <h2 className="font-bold text-base sm:text-lg truncate">{t("support.title")}</h2>
             </div>
           ) : (
             <>
@@ -341,7 +347,7 @@ export default function MainRoom() {
                 <div key={u.userId} className="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-sidebar-accent transition-colors cursor-default">
                   <div className="relative shrink-0">
                     <Avatar className="w-7 h-7">
-                      <AvatarImage src={u.avatarUrl || undefined} />
+                      {u.avatarUrl && <AvatarImage src={u.avatarUrl} />}
                       <AvatarFallback>{u.username.slice(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-primary rounded-full border-2 border-sidebar" />

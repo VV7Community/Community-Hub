@@ -296,16 +296,16 @@ async function seed() {
     console.log("✓ #aandelen-bespreken seeded");
   }
 
-  // ── #unisearch-strategien — sample UniSearch setup ───────────────────────────────
+  // ── #unisearch — sample UniSearch setup ───────────────────────────────
   const unisearchMessages = await db
     .select()
     .from(messagesTable)
-    .where(eq(messagesTable.channelId, "unisearch-strategien"));
+    .where(eq(messagesTable.channelId, "unisearch"));
 
   if (unisearchMessages.length === 0) {
     await db.insert(messagesTable).values([
       {
-        channelId: "unisearch-strategien",
+        channelId: "unisearch",
         userId: "sample_user_4",
         username: "ScreenerFan",
         avatarUrl: null,
@@ -315,7 +315,7 @@ async function seed() {
         isPinned: false,
       },
     ]);
-    console.log("✓ #unisearch-strategien seeded");
+    console.log("✓ #unisearch seeded");
   }
 
   console.log("✅ Database seeding complete");

@@ -220,12 +220,15 @@ export const GetPinnedMessageResponse = zod.object({
 /**
  * @summary Get current user profile
  */
+export const getMeResponseLanguageDefault = `nl`;
+
 export const GetMeResponse = zod.object({
   "userId": zod.string(),
   "username": zod.string(),
   "avatarUrl": zod.string().nullish(),
   "role": zod.enum(['admin', 'member']),
-  "membershipStatus": zod.enum(['pending', 'verified', 'rejected'])
+  "membershipStatus": zod.enum(['pending', 'verified', 'rejected']),
+  "language": zod.enum(['nl', 'fr']).default(getMeResponseLanguageDefault)
 })
 
 
@@ -237,15 +240,19 @@ export const updateMeBodyUsernameMin = 2;
 
 
 export const UpdateMeBody = zod.object({
-  "username": zod.string().min(updateMeBodyUsernameMin).optional()
+  "username": zod.string().min(updateMeBodyUsernameMin).optional(),
+  "language": zod.enum(['nl', 'fr']).optional()
 })
+
+export const updateMeResponseLanguageDefault = `nl`;
 
 export const UpdateMeResponse = zod.object({
   "userId": zod.string(),
   "username": zod.string(),
   "avatarUrl": zod.string().nullish(),
   "role": zod.enum(['admin', 'member']),
-  "membershipStatus": zod.enum(['pending', 'verified', 'rejected'])
+  "membershipStatus": zod.enum(['pending', 'verified', 'rejected']),
+  "language": zod.enum(['nl', 'fr']).default(updateMeResponseLanguageDefault)
 })
 
 
@@ -259,6 +266,31 @@ export const GetOnlineUsersResponse = zod.object({
   "username": zod.string(),
   "avatarUrl": zod.string().nullish()
 }))
+})
+
+
+/**
+ * @summary Scrape and refresh VectorVest EU events (admin only)
+ */
+export const SyncEventsResponse = zod.object({
+  "synced": zod.number()
+})
+
+
+/**
+ * @summary Translate a text snippet to the user's preferred language
+ */
+export const translateTextBodyTextMax = 4000;
+
+
+
+export const TranslateTextBody = zod.object({
+  "text": zod.string().min(1).max(translateTextBodyTextMax),
+  "targetLanguage": zod.enum(['nl', 'fr'])
+})
+
+export const TranslateTextResponse = zod.object({
+  "translatedText": zod.string()
 })
 
 
@@ -287,7 +319,8 @@ export const ListEventsResponseItem = zod.object({
   "description": zod.string(),
   "date": zod.coerce.date(),
   "location": zod.string().nullish(),
-  "type": zod.string().optional()
+  "type": zod.string().optional(),
+  "sourceUrl": zod.string().nullish()
 })
 export const ListEventsResponse = zod.array(ListEventsResponseItem)
 

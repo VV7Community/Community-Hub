@@ -98,6 +98,14 @@ export const UserProfileMembershipStatus = {
   rejected: 'rejected',
 } as const;
 
+export type UserProfileLanguage = typeof UserProfileLanguage[keyof typeof UserProfileLanguage];
+
+
+export const UserProfileLanguage = {
+  nl: 'nl',
+  fr: 'fr',
+} as const;
+
 export interface UserProfile {
   userId: string;
   username: string;
@@ -105,11 +113,21 @@ export interface UserProfile {
   avatarUrl?: string | null;
   role: UserProfileRole;
   membershipStatus: UserProfileMembershipStatus;
+  language: UserProfileLanguage;
 }
+
+export type UserProfileUpdateLanguage = typeof UserProfileUpdateLanguage[keyof typeof UserProfileUpdateLanguage];
+
+
+export const UserProfileUpdateLanguage = {
+  nl: 'nl',
+  fr: 'fr',
+} as const;
 
 export interface UserProfileUpdate {
   /** @minLength 2 */
   username?: string;
+  language?: UserProfileUpdateLanguage;
 }
 
 export interface OnlineUser {
@@ -154,6 +172,29 @@ export interface Event {
   /** @nullable */
   location?: string | null;
   type?: string;
+  /** @nullable */
+  sourceUrl?: string | null;
+}
+
+export type TranslateRequestTargetLanguage = typeof TranslateRequestTargetLanguage[keyof typeof TranslateRequestTargetLanguage];
+
+
+export const TranslateRequestTargetLanguage = {
+  nl: 'nl',
+  fr: 'fr',
+} as const;
+
+export interface TranslateRequest {
+  /**
+     * @minLength 1
+     * @maxLength 4000
+     */
+  text: string;
+  targetLanguage: TranslateRequestTargetLanguage;
+}
+
+export interface TranslateResponse {
+  translatedText: string;
 }
 
 export type CourseLevel = typeof CourseLevel[keyof typeof CourseLevel];
@@ -244,6 +285,10 @@ export type GetChannelMessagesParams = {
  */
 before?: number;
 limit?: number;
+};
+
+export type SyncEvents200 = {
+  synced: number;
 };
 
 export type ListMembersParams = {
