@@ -33,7 +33,7 @@ export const membershipAuditLogTable = pgTable(
   (t) => [
     check(
       "membership_audit_log_action_check",
-      sql`${t.action} IN ('auto_verified', 'manual_verified', 'manual_rejected', 'reset_to_pending')`,
+      sql`${t.action} IN ('auto_verified', 'manual_verified', 'manual_rejected', 'reset_to_pending', 'bootstrap_admin')`,
     ),
   ],
 );

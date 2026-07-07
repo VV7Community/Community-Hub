@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { createClerkClient } from "@clerk/express";
 import { db, usersTable, type User } from "@workspace/db";
-import { membershipVerifier, recordMembershipAudit } from "./membership";
+import { membershipVerifier, recordMembershipAudit, isBootstrapAdminEmail } from "./membership";
 
 const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
@@ -13,7 +13,26 @@ const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
  */
 export async function getOrCreateUser(userId: string): Promise<User | undefined> {
   let [user] = await db.select().from(usersTable).where(eq(usersTable.userId, userId));
-  if (user) return user;
+
+  if (user) {
+    // Covers the case where BOOTSTRAP_ADMIN_EMAIL is set after the account
+    // already exists (e.g. someone signed up before an admin was bootstrapped).
+    if (isBootstrapAdminEmail(user.email) && (user.role !== "admin" || user.membershipStatus !== "verified")) {
+      const [promoted] = await db
+        .update(usersTable)
+        .set({
+          role: "admin",
+          membershipStatus: "verified",
+          membershipMethod: "manual",
+          membershipVerifiedAt: new Date(),
+        })
+        .where(eq(usersTable.userId, userId))
+        .returning();
+      await recordMembershipAudit({ targetUserId: userId, action: "bootstrap_admin" });
+      return promoted ?? user;
+    }
+    return user;
+  }
 
   let username = `user_${userId.slice(-6)}`;
   let avatarUrl: string | null = null;
@@ -31,7 +50,10 @@ export async function getOrCreateUser(userId: string): Promise<User | undefined>
     // Clerk lookup failed — fall back to placeholder profile, membership stays pending
   }
 
-  const verification = await membershipVerifier.verify({ email, userId });
+  const isBootstrapAdmin = isBootstrapAdminEmail(email);
+  const verification = isBootstrapAdmin
+    ? ({ status: "verified", vectorVestMemberId: null } as const)
+    : await membershipVerifier.verify({ email, userId });
 
   const [created] = await db
     .insert(usersTable)
@@ -40,7 +62,7 @@ export async function getOrCreateUser(userId: string): Promise<User | undefined>
       username,
       email,
       avatarUrl,
-      role: "member",
+      role: isBootstrapAdmin ? "admin" : "member",
       membershipStatus: verification.status,
       membershipVerifiedAt: verification.status === "verified" ? new Date() : null,
       membershipMethod: verification.status === "verified" ? "manual" : null,
@@ -54,7 +76,9 @@ export async function getOrCreateUser(userId: string): Promise<User | undefined>
     return user;
   }
 
-  if (verification.status === "verified") {
+  if (isBootstrapAdmin) {
+    await recordMembershipAudit({ targetUserId: userId, action: "bootstrap_admin" });
+  } else if (verification.status === "verified") {
     await recordMembershipAudit({ targetUserId: userId, action: "auto_verified" });
   }
 

@@ -40,10 +40,23 @@ export class StubApiVerifier implements MembershipVerifier {
 
 export const membershipVerifier: MembershipVerifier = new ManualAllowlistVerifier();
 
+/**
+ * One-time bootstrap: the very first admin has no one to verify them, since
+ * every admin-only route requires an existing admin. Set BOOTSTRAP_ADMIN_EMAIL
+ * to the operator's own email to auto-promote that account to admin+verified
+ * on sign-in — after that, manage further admins through the allowlist/admin
+ * panel instead of this env var.
+ */
+export function isBootstrapAdminEmail(email: string | null): boolean {
+  const bootstrapEmail = process.env.BOOTSTRAP_ADMIN_EMAIL;
+  if (!bootstrapEmail || !email) return false;
+  return email.toLowerCase() === bootstrapEmail.toLowerCase();
+}
+
 export async function recordMembershipAudit(entry: {
   targetUserId: string;
   actorUserId?: string | null;
-  action: "auto_verified" | "manual_verified" | "manual_rejected" | "reset_to_pending";
+  action: "auto_verified" | "manual_verified" | "manual_rejected" | "reset_to_pending" | "bootstrap_admin";
   reason?: string | null;
 }): Promise<void> {
   await db.insert(membershipAuditLogTable).values({
