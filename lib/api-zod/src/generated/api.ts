@@ -23,8 +23,9 @@ export const ListChannelsResponseItem = zod.object({
   "id": zod.string(),
   "name": zod.string(),
   "description": zod.string(),
-  "category": zod.enum(['WELCOME', 'COMMUNITY', 'RESOURCES']),
-  "writable": zod.boolean(),
+  "category": zod.enum(['INFO', 'COMMUNITY']),
+  "postPermission": zod.enum(['all', 'admin']).optional(),
+  "writable": zod.boolean().describe('Whether the requesting user can post in this channel right now'),
   "icon": zod.string(),
   "unreadCount": zod.number().optional()
 })
@@ -51,6 +52,7 @@ export const GetChannelMessagesResponseItem = zod.object({
   "userId": zod.string(),
   "username": zod.string(),
   "avatarUrl": zod.string().nullish(),
+  "authorRole": zod.enum(['admin', 'member']),
   "content": zod.string(),
   "createdAt": zod.coerce.date(),
   "reactions": zod.array(zod.object({
@@ -84,6 +86,7 @@ export const SendMessageResponse = zod.object({
   "userId": zod.string(),
   "username": zod.string(),
   "avatarUrl": zod.string().nullish(),
+  "authorRole": zod.enum(['admin', 'member']),
   "content": zod.string(),
   "createdAt": zod.coerce.date(),
   "reactions": zod.array(zod.object({
@@ -106,6 +109,35 @@ export const DeleteMessageResponse = zod.void()
 
 
 /**
+ * @summary Pin or unpin a message (admin only)
+ */
+export const PinMessageParams = zod.object({
+  "messageId": zod.coerce.number()
+})
+
+export const PinMessageBody = zod.object({
+  "pinned": zod.boolean()
+})
+
+export const PinMessageResponse = zod.object({
+  "id": zod.number(),
+  "channelId": zod.string(),
+  "userId": zod.string(),
+  "username": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "authorRole": zod.enum(['admin', 'member']),
+  "content": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "userReacted": zod.boolean()
+})),
+  "isPinned": zod.boolean()
+})
+
+
+/**
  * @summary Add or toggle a reaction on a message
  */
 export const AddReactionParams = zod.object({
@@ -122,6 +154,7 @@ export const AddReactionResponse = zod.object({
   "userId": zod.string(),
   "username": zod.string(),
   "avatarUrl": zod.string().nullish(),
+  "authorRole": zod.enum(['admin', 'member']),
   "content": zod.string(),
   "createdAt": zod.coerce.date(),
   "reactions": zod.array(zod.object({
@@ -147,6 +180,7 @@ export const RemoveReactionResponse = zod.object({
   "userId": zod.string(),
   "username": zod.string(),
   "avatarUrl": zod.string().nullish(),
+  "authorRole": zod.enum(['admin', 'member']),
   "content": zod.string(),
   "createdAt": zod.coerce.date(),
   "reactions": zod.array(zod.object({
@@ -171,6 +205,7 @@ export const GetPinnedMessageResponse = zod.object({
   "userId": zod.string(),
   "username": zod.string(),
   "avatarUrl": zod.string().nullish(),
+  "authorRole": zod.enum(['admin', 'member']),
   "content": zod.string(),
   "createdAt": zod.coerce.date(),
   "reactions": zod.array(zod.object({

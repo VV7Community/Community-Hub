@@ -13,9 +13,16 @@ export type ChannelCategory = typeof ChannelCategory[keyof typeof ChannelCategor
 
 
 export const ChannelCategory = {
-  WELCOME: 'WELCOME',
+  INFO: 'INFO',
   COMMUNITY: 'COMMUNITY',
-  RESOURCES: 'RESOURCES',
+} as const;
+
+export type ChannelPostPermission = typeof ChannelPostPermission[keyof typeof ChannelPostPermission];
+
+
+export const ChannelPostPermission = {
+  all: 'all',
+  admin: 'admin',
 } as const;
 
 export interface Channel {
@@ -23,10 +30,20 @@ export interface Channel {
   name: string;
   description: string;
   category: ChannelCategory;
+  postPermission?: ChannelPostPermission;
+  /** Whether the requesting user can post in this channel right now */
   writable: boolean;
   icon: string;
   unreadCount?: number;
 }
+
+export type MessageAuthorRole = typeof MessageAuthorRole[keyof typeof MessageAuthorRole];
+
+
+export const MessageAuthorRole = {
+  admin: 'admin',
+  member: 'member',
+} as const;
 
 export interface ReactionGroup {
   emoji: string;
@@ -41,10 +58,15 @@ export interface Message {
   username: string;
   /** @nullable */
   avatarUrl?: string | null;
+  authorRole: MessageAuthorRole;
   content: string;
   createdAt: string;
   reactions: ReactionGroup[];
   isPinned: boolean;
+}
+
+export interface PinMessageInput {
+  pinned: boolean;
 }
 
 export interface MessageInput {

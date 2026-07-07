@@ -32,6 +32,7 @@ import type {
   Message,
   MessageInput,
   OnlineUsersResponse,
+  PinMessageInput,
   ReactionInput,
   RejectMemberInput,
   UserProfile,
@@ -449,6 +450,77 @@ export const useDeleteMessage = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getDeleteMessageMutationOptions(options));
+    }
+
+export const getPinMessageUrl = (messageId: number,) => {
+
+
+
+
+  return `/api/messages/${messageId}/pin`
+}
+
+/**
+ * @summary Pin or unpin a message (admin only)
+ */
+export const pinMessage = async (messageId: number,
+    pinMessageInput: PinMessageInput, options?: RequestInit): Promise<Message> => {
+
+  return customFetch<Message>(getPinMessageUrl(messageId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(pinMessageInput)
+  }
+);}
+
+
+
+
+export const getPinMessageMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pinMessage>>, TError,{messageId: number;data: BodyType<PinMessageInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof pinMessage>>, TError,{messageId: number;data: BodyType<PinMessageInput>}, TContext> => {
+
+const mutationKey = ['pinMessage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof pinMessage>>, {messageId: number;data: BodyType<PinMessageInput>}> = (props) => {
+          const {messageId,data} = props ?? {};
+
+          return  pinMessage(messageId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PinMessageMutationResult = NonNullable<Awaited<ReturnType<typeof pinMessage>>>
+    export type PinMessageMutationBody = BodyType<PinMessageInput>
+    export type PinMessageMutationError = ErrorType<void>
+
+    /**
+ * @summary Pin or unpin a message (admin only)
+ */
+export const usePinMessage = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pinMessage>>, TError,{messageId: number;data: BodyType<PinMessageInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof pinMessage>>,
+        TError,
+        {messageId: number;data: BodyType<PinMessageInput>},
+        TContext
+      > => {
+      return useMutation(getPinMessageMutationOptions(options));
     }
 
 export const getAddReactionUrl = (messageId: number,) => {

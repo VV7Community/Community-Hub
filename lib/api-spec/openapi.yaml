@@ -142,6 +142,38 @@ paths:
         "404":
           description: Not found
 
+  /messages/{messageId}/pin:
+    put:
+      operationId: pinMessage
+      tags: [messages]
+      summary: Pin or unpin a message (admin only)
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PinMessageInput"
+      responses:
+        "200":
+          description: Updated message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Not found
+
   /messages/{messageId}/reactions:
     post:
       operationId: addReaction
@@ -505,9 +537,13 @@ components:
           type: string
         category:
           type: string
-          enum: [WELCOME, COMMUNITY, RESOURCES]
+          enum: [INFO, COMMUNITY]
+        postPermission:
+          type: string
+          enum: [all, admin]
         writable:
           type: boolean
+          description: Whether the requesting user can post in this channel right now
         icon:
           type: string
         unreadCount:
@@ -515,7 +551,7 @@ components:
 
     Message:
       type: object
-      required: [id, channelId, userId, username, content, createdAt, reactions, isPinned]
+      required: [id, channelId, userId, username, authorRole, content, createdAt, reactions, isPinned]
       properties:
         id:
           type: integer
@@ -527,6 +563,9 @@ components:
           type: string
         avatarUrl:
           type: ["string", "null"]
+        authorRole:
+          type: string
+          enum: [admin, member]
         content:
           type: string
         createdAt:
@@ -537,6 +576,13 @@ components:
           items:
             $ref: "#/components/schemas/ReactionGroup"
         isPinned:
+          type: boolean
+
+    PinMessageInput:
+      type: object
+      required: [pinned]
+      properties:
+        pinned:
           type: boolean
 
     MessageInput:

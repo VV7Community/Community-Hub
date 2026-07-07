@@ -225,7 +225,7 @@ function LandingPage() {
 function HomeRedirect() {
   return (
     <>
-      <Show when="signed-in"><Redirect to="/room/main-chat" /></Show>
+      <Show when="signed-in"><Redirect to="/room/chat" /></Show>
       <Show when="signed-out"><LandingPage /></Show>
     </>
   );
@@ -270,7 +270,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!me || me.membershipStatus !== "verified" || me.role !== "admin") {
-    return <Redirect to="/room/main-chat" />;
+    return <Redirect to="/room/chat" />;
   }
 
   return <Shell>{children}</Shell>;

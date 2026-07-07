@@ -9,7 +9,7 @@ import {
   GetPinnedMessageParams,
 } from "@workspace/api-zod";
 import { requireAuth, requireVerifiedMember, type AuthedRequest } from "../middlewares/auth";
-import { CHANNELS, getChannel } from "../lib/channels";
+import { CHANNELS, getChannel, canPostInChannel } from "../lib/channels";
 import { fetchMessagesWithReactions, fetchSingleMessageWithReactions } from "../lib/messageHelper";
 import { broadcastNewMessage } from "../ws";
 import { getOrCreateUser } from "../lib/userProvisioning";
@@ -22,8 +22,15 @@ const rateLimitMap = new Map<string, number>();
 const RATE_LIMIT_MS = 1000;
 
 // GET /channels — list all channels
-router.get("/channels", requireAuth, requireVerifiedMember, async (_req, res): Promise<void> => {
-  const channels = CHANNELS.map((c) => ({ ...c, unreadCount: 0 }));
+router.get("/channels", requireAuth, requireVerifiedMember, async (req, res): Promise<void> => {
+  const userId = (req as AuthedRequest).userId;
+  const user = await getOrCreateUser(userId);
+  const role = user?.role ?? "member";
+  const channels = CHANNELS.map((c) => ({
+    ...c,
+    writable: canPostInChannel(c, role),
+    unreadCount: 0,
+  }));
   res.json(channels);
 });
 
@@ -87,6 +94,7 @@ router.get("/channels/:channelId/messages", requireAuth, requireVerifiedMember, 
           userId: m.userId,
           username: m.username,
           avatarUrl: m.avatarUrl ?? null,
+          authorRole: m.authorRole,
           content: m.content,
           createdAt: m.createdAt,
           reactions: Array.from(emojiMap.entries()).map(([emoji, d]) => ({ emoji, count: d.count, userReacted: d.userReacted })),
@@ -125,12 +133,19 @@ router.post("/channels/:channelId/messages", requireAuth, requireVerifiedMember,
     return;
   }
 
-  if (!channel.writable) {
-    res.status(403).json({ error: "Channel is read-only" });
+  const userId = (req as AuthedRequest).userId;
+  const user = await getOrCreateUser(userId);
+  const role = user?.role ?? "member";
+
+  if (!canPostInChannel(channel, role)) {
+    res.status(403).json({
+      error:
+        channel.postPermission === "admin"
+          ? "Only the VectorVest team can post here."
+          : "Channel is read-only",
+    });
     return;
   }
-
-  const userId = (req as AuthedRequest).userId;
 
   // Rate limiting
   const lastMsg = rateLimitMap.get(userId) ?? 0;
@@ -141,8 +156,6 @@ router.post("/channels/:channelId/messages", requireAuth, requireVerifiedMember,
   rateLimitMap.set(userId, Date.now());
 
   try {
-    const user = await getOrCreateUser(userId);
-
     const username = user?.username ?? `user_${userId.slice(-6)}`;
     const avatarUrl = user?.avatarUrl ?? null;
 
@@ -153,6 +166,7 @@ router.post("/channels/:channelId/messages", requireAuth, requireVerifiedMember,
         userId,
         username,
         avatarUrl,
+        authorRole: role,
         content: body.data.content,
         isPinned: false,
       })
@@ -164,6 +178,7 @@ router.post("/channels/:channelId/messages", requireAuth, requireVerifiedMember,
       userId: message.userId,
       username: message.username,
       avatarUrl: message.avatarUrl ?? null,
+      authorRole: message.authorRole,
       content: message.content,
       createdAt: message.createdAt,
       reactions: [],

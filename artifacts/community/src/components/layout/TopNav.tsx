@@ -7,7 +7,7 @@ import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const navItems = [
-  { label: "Main Room",  path: "/room/main-chat", icon: MessageSquare, activeMatches: ["/room"] },
+  { label: "Main Room",  path: "/room/chat", icon: MessageSquare, activeMatches: ["/room"] },
   { label: "Webinar",    path: "/webinar",         icon: Video,         activeMatches: ["/webinar"] },
   { label: "University", path: "/university",      icon: BookOpen,      activeMatches: ["/university"] },
   { label: "Events",     path: "/events",          icon: Calendar,      activeMatches: ["/events"] },
