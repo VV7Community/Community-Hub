@@ -3,8 +3,7 @@ import { cn } from "@/lib/utils";
 import { MessageSquare, Video, BookOpen, Calendar, UserCircle, Headphones, ShieldCheck } from "lucide-react";
 import { useClerk } from "@clerk/react";
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
-
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { BrandLogo } from "@/components/brand/BrandLogo";
 
 const navItems = [
   { label: "Main Room",  path: "/room/chat", icon: MessageSquare, activeMatches: ["/room"] },
@@ -23,14 +22,10 @@ export function TopNav() {
   return (
     <nav className="h-14 border-b border-sidebar-border bg-sidebar px-4 flex items-center shrink-0 shadow-lg z-20 relative">
       {/* Brand mark */}
-      <Link href="/" className="flex items-center gap-3 shrink-0 group">
-        <img
-          src={`${basePath}/vv-logo.png`}
-          alt="VectorVest"
-          className="h-7 w-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity"
-        />
-        <span className="text-[10px] font-semibold tracking-widest text-primary/70 uppercase mt-0.5 hidden lg:block">
-          Community Europe
+      <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+        <BrandLogo size="sm" />
+        <span className="text-[10px] font-semibold tracking-widest text-primary/70 uppercase mt-0.5 hidden lg:block border-l border-sidebar-border pl-2.5 ml-0.5">
+          België &amp; Nederland
         </span>
       </Link>
 

@@ -1,6 +1,7 @@
 import { useGetMe, getGetMeQueryKey } from "@workspace/api-client-react";
 import { useClerk } from "@clerk/react";
 import { Button } from "@/components/ui/button";
+import { LogoMark } from "@/components/brand/BrandLogo";
 import { Loader2, Clock3, XCircle, LogOut } from "lucide-react";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -14,11 +15,7 @@ export default function MembershipPendingPage() {
   return (
     <div className="min-h-[100dvh] w-full bg-background flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-card border border-border rounded-xl p-8 text-center space-y-5">
-        <img
-          src={`${basePath}/vv-icon.jpeg`}
-          alt="VectorVest"
-          className="w-16 h-16 rounded-2xl mx-auto shadow-lg border border-white/10"
-        />
+        <LogoMark className="w-16 h-16 mx-auto" />
 
         {isRejected ? (
           <>
